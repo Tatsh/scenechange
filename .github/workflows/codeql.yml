@@ -16,13 +16,22 @@ jobs:
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build pkg-config vapoursynth
+          sudo apt-get install -y ninja-build
+      - name: 'Fetch VapourSynth headers'
+        run: >-
+          git clone --depth 1 --branch R72
+          https://github.com/vapoursynth/vapoursynth.git
+          '${{ github.workspace }}/vendor/vapoursynth'
       - name: 'Initialize CodeQL'
         uses: 'github/codeql-action/init@v4'
         with:
           languages: '${{ matrix.language }}'
-      - name: 'Autobuild'
-        uses: 'github/codeql-action/autobuild@v4'
+      - name: 'Configure'
+        run: >-
+          cmake -G Ninja -B '${{ github.workspace }}/build'
+          -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
+      - name: 'Build'
+        run: 'cmake --build ${{ github.workspace }}/build --verbose'
       - name: 'Perform CodeQL Analysis'
         uses: 'github/codeql-action/analyze@v4'
         with:

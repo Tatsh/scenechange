@@ -8,12 +8,18 @@ jobs:
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build pkg-config vapoursynth
+          sudo apt-get install -y ninja-build
+      - name: 'Fetch VapourSynth headers'
+        run: >-
+          git clone --depth 1 --branch R72
+          https://github.com/vapoursynth/vapoursynth.git
+          '${{ github.workspace }}/vendor/vapoursynth'
       - name: 'Configure'
         run: >-
           cmake -G Ninja -B '${{ github.workspace }}/build'
           --install-prefix '${{ github.workspace }}/build/prefix'
           -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
+          -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
       - name: 'Build'
         run: 'cmake --build ${{ github.workspace }}/build --verbose'
       - if: "matrix.build-type == 'Release'"

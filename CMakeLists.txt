@@ -10,15 +10,28 @@ set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(VAPOURSYNTH REQUIRED IMPORTED_TARGET vapoursynth)
-
-pkg_get_variable(VAPOURSYNTH_PLUGINS_DIR_DEFAULT vapoursynth pluginsdir)
-if(NOT VAPOURSYNTH_PLUGINS_DIR_DEFAULT)
-  set(VAPOURSYNTH_PLUGINS_DIR_DEFAULT "${CMAKE_INSTALL_FULL_LIBDIR}/vapoursynth")
+find_package(PkgConfig)
+if(PkgConfig_FOUND)
+  pkg_check_modules(VAPOURSYNTH IMPORTED_TARGET vapoursynth)
 endif()
-set(VAPOURSYNTH_PLUGINS_DIR "${VAPOURSYNTH_PLUGINS_DIR_DEFAULT}"
-    CACHE PATH "Install directory for VapourSynth plugins.")
+
+if(NOT VAPOURSYNTH_FOUND)
+  find_path(VAPOURSYNTH_INCLUDE_DIR
+            NAMES VapourSynth.h
+            PATH_SUFFIXES vapoursynth)
+  if(NOT VAPOURSYNTH_INCLUDE_DIR)
+    message(FATAL_ERROR
+      "VapourSynth headers not found. Install via your package manager "
+      "(apt install vapoursynth, brew install vapoursynth) or set "
+      "VAPOURSYNTH_INCLUDE_DIR to a directory containing VapourSynth.h.")
+  endif()
+  add_library(PkgConfig::VAPOURSYNTH INTERFACE IMPORTED)
+  target_include_directories(PkgConfig::VAPOURSYNTH INTERFACE ${VAPOURSYNTH_INCLUDE_DIR})
+endif()
+
+# Relative to CMAKE_INSTALL_PREFIX so CPack can stage it under the package root.
+set(VAPOURSYNTH_PLUGINS_DIR "${CMAKE_INSTALL_LIBDIR}/vapoursynth"
+    CACHE PATH "Install directory for VapourSynth plugins (relative to CMAKE_INSTALL_PREFIX).")
 
 option(BUILD_DOCS "Build documentation." OFF)
 option(INSTALL_DOCS "Install documentation." OFF)
@@ -40,5 +53,35 @@ endif()
 add_subdirectory(src)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
+
+set(CPACK_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
+set(CPACK_PACKAGE_VENDOR "Tatsh")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Scene change detection plugin for VapourSynth.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Tatsh/scenechange")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_PROJECT_NAME}")
+
+set(CPACK_GENERATOR "ZIP")
+
+if(NOT CPACK_SYSTEM_NAME)
+  if(WIN32)
+    set(_cpack_os "windows")
+  elseif(APPLE)
+    set(_cpack_os "macos")
+  else()
+    string(TOLOWER "${CMAKE_SYSTEM_NAME}" _cpack_os)
+  endif()
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64|arm64)$")
+    set(_cpack_arch "arm64")
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
+    set(_cpack_arch "x86_64")
+  else()
+    set(_cpack_arch "${CMAKE_SYSTEM_PROCESSOR}")
+  endif()
+  set(CPACK_SYSTEM_NAME "${_cpack_os}-${_cpack_arch}")
+endif()
+set(CPACK_PACKAGE_FILE_NAME
+    "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-${CPACK_SYSTEM_NAME}")
 
 include(CPack)

@@ -43,6 +43,21 @@ else()
 endif()
 target_compile_options(temporalsoften2 PRIVATE ${TEMPORALSOFTEN_SIMD_FLAGS})
 
+if(MSVC)
+  # MSVC builds ship as a flat ZIP that users extract into their VapourSynth
+  # plugin directory. MSYS2/MinGW Windows builds install into an FHS-like
+  # prefix instead, so they follow the same layout as Linux and macOS.
+  set(SCENECHANGE_PLUGIN_DEST ".")
+  set(SCENECHANGE_DOC_DEST ".")
+else()
+  set(SCENECHANGE_PLUGIN_DEST "${VAPOURSYNTH_PLUGINS_DIR}")
+  set(SCENECHANGE_DOC_DEST "${CMAKE_INSTALL_DOCDIR}")
+endif()
+
 install(TARGETS scenechange temporalsoften2
-        LIBRARY DESTINATION "${VAPOURSYNTH_PLUGINS_DIR}"
-        RUNTIME DESTINATION "${VAPOURSYNTH_PLUGINS_DIR}")
+        LIBRARY DESTINATION "${SCENECHANGE_PLUGIN_DEST}"
+        RUNTIME DESTINATION "${SCENECHANGE_PLUGIN_DEST}")
+
+install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" "${CMAKE_SOURCE_DIR}/README.md"
+              "${CMAKE_SOURCE_DIR}/temporalsoften2.py"
+        DESTINATION "${SCENECHANGE_DOC_DEST}")

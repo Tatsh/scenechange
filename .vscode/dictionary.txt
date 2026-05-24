@@ -1,5 +1,6 @@
 Ångström
 appimage
+avisynth
 bitdepth
 bsky
 buildsystems
@@ -35,6 +36,7 @@ luma
 mainpage
 math
 mdfile
+mfpmath
 mktemp
 modframe
 motofumi
@@ -59,6 +61,7 @@ shellformat
 snapcraft
 srai
 srcpf
+srcs
 tagfile
 tatsh
 temporalsoften

@@ -1,0 +1,14 @@
+{
+  "dependencies": [
+
+  ],
+  "description": "Scene change detection plugin for VapourSynth.",
+  "documentation": "https://scenechange.readthedocs.org",
+  "homepage": "https://tatsh.github.io/scenechange/",
+  "license": "LGPL-2.1-or-later",
+  "maintainers": [
+    "Andrew Udvare <audvare@gmail.com>"
+  ],
+  "name": "scenechange",
+  "version": "0.2.0"
+}

@@ -5,7 +5,7 @@
 [![C](https://img.shields.io/badge/C-00599C?logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/tags)
 [![License](https://img.shields.io/github/license/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt)
-[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.2.0/master)](https://github.com/Tatsh/scenechange/compare/v0.2.0...master)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.3.0/master)](https://github.com/Tatsh/scenechange/compare/v0.3.0...master)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
 [![pages-build-deployment](https://github.com/Tatsh/scenechange/actions/workflows/pages/pages-build-deployment/badge.svg)](https://tatsh.github.io/scenechange/)
 [![Stargazers](https://img.shields.io/github/stars/Tatsh/scenechange?logo=github&style=flat)](https://github.com/Tatsh/scenechange/stargazers)

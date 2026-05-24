@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(scenechange VERSION 0.2.0 LANGUAGES C)
+project(scenechange VERSION 0.3.0 LANGUAGES C)
 
 include(FeatureSummary)
 include(GNUInstallDirs)

@@ -2,7 +2,7 @@
   uses_user_defaults: true,
   security_policy_supported_versions: { '0.2.x': ':white_check_mark:' },
   project_name: 'scenechange',
-  version: '0.2.0',
+  version: '0.3.0',
   license: 'LGPL-2.1-or-later',
   description: 'Scene change detection plugin for VapourSynth.',
   authors+: [

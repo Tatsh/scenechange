@@ -1,13 +1,13 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+// SPDX-License-Identifier: LGPL-2.1-or-later
+#include <VapourSynth.h>
 #include <emmintrin.h>
-#include "VapourSynth.h"
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _MSC_VER
-#pragma warning(disable:4224 4996)
 #define snprintf _snprintf
 #define TS_ALIGN __declspec(align(16))
 #define TS_FUNC_ALIGN
@@ -16,20 +16,19 @@
 #define TS_FUNC_ALIGN __attribute__((force_align_arg_pointer))
 #endif
 
-#define TEMPORALSOFTEN2_VERSION "0.1.1"
+#define TEMPORALSOFTEN2_VERSION "0.2.0"
 
 typedef struct {
     VSNodeRef *node;
     const VSVideoInfo *vi;
 
-   // Filter parameters.
+    // Filter parameters.
     int radius;
     int threshold[3];
     int scenechange;
     int mode;
-    void (VS_CC *proc)(uint8_t *, const uint8_t **, int, int, int);
+    void(VS_CC *proc)(uint8_t *, const uint8_t **, int, int, int);
 } TemporalSoftenData;
-
 
 #if 0
 static void VS_CC
@@ -94,9 +93,7 @@ mode2_16bit(uint8_t *dstp8, const uint8_t **srcp8, int frames, int width,
 #endif
 
 static void TS_FUNC_ALIGN VS_CC
-mode2_8bit_sse2(uint8_t *dstp, const uint8_t **srcp, int frames, int frame_size,
-                int threshold)
-{
+mode2_8bit_sse2(uint8_t *dstp, const uint8_t **srcp, int frames, int frame_size, int threshold) {
     int16_t half_frames = frames / 2;
     int f;
     int16_t mul = (int16_t)ceil((1.0 / frames) * 65536);
@@ -157,15 +154,13 @@ mode2_8bit_sse2(uint8_t *dstp, const uint8_t **srcp, int frames, int frame_size,
         _mm_store_si128((__m128i *)dstp, sum_lo);
 
         dstp += 16;
-        for (f = 1; f < frames; srcp[f++] += 16);
+        for (f = 1; f < frames; srcp[f++] += 16)
+            ;
     } while ((frame_size -= 16) > 0);
 }
 
-
-static void TS_FUNC_ALIGN VS_CC
-mode2_9_or_10_sse2(uint8_t *dstp8, const uint8_t **srcp8, int frames,
-                   int frame_size, int threshold)
-{
+static void TS_FUNC_ALIGN VS_CC mode2_9_or_10_sse2(
+    uint8_t *dstp8, const uint8_t **srcp8, int frames, int frame_size, int threshold) {
     uint16_t *dstp = (uint16_t *)dstp8;
     const uint16_t *srcp[16];
     int half_frames = frames / 2;
@@ -214,19 +209,17 @@ mode2_9_or_10_sse2(uint8_t *dstp8, const uint8_t **srcp8, int frames,
         _mm_store_si128((__m128i *)dstp, sum);
 
         dstp += 8;
-        for (f = 1; f < frames; srcp[f++] += 8);
+        for (f = 1; f < frames; srcp[f++] += 8)
+            ;
     } while ((frame_size -= 16) > 0);
 }
-
 
 typedef struct {
     TS_ALIGN uint16_t buff[8];
 } buff_t;
 
 static void TS_FUNC_ALIGN VS_CC
-mode2_16bit_sse2(uint8_t *dstp8, const uint8_t **srcp8, int frames,
-                   int frame_size, int threshold)
-{
+mode2_16bit_sse2(uint8_t *dstp8, const uint8_t **srcp8, int frames, int frame_size, int threshold) {
     uint16_t *dstp = (uint16_t *)dstp8;
     const uint16_t *srcp[16];
     int half_frames = frames / 2;
@@ -272,46 +265,44 @@ mode2_16bit_sse2(uint8_t *dstp8, const uint8_t **srcp8, int frames,
         // I want _mm_mulhi_epi32(), but it doesn't exists.
         for (int t = 0; t < 8; t++) {
             uint32_t sum = half_frames;
-            for (f = 0; f < frames; sum += buffer[f++].buff[t]);
+            for (f = 0; f < frames; sum += buffer[f++].buff[t])
+                ;
             dstp[t] = (uint16_t)((sum * r + (1 << 20)) >> 40);
         }
 
         dstp += 8;
-        for (f = 1; f < frames; srcp[f++] += 8);
+        for (f = 1; f < frames; srcp[f++] += 8)
+            ;
     } while ((frame_size -= 16) > 0);
 }
 
-
-static void VS_CC
-temporalSoftenInit(VSMap *in, VSMap *out, void **instanceData, VSNode *node,
-                   VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC temporalSoftenInit(
+    VSMap *in, VSMap *out, void **instanceData, VSNode *node, VSCore *core, const VSAPI *vsapi) {
     TemporalSoftenData *d = (TemporalSoftenData *)*instanceData;
     vsapi->setVideoInfo(d->vi, 1, node);
 }
 
-
-static int max(int n, int m)
-{
+static int max(int n, int m) {
     if (n < m) {
         return m;
     }
     return n;
 }
 
-static int min(int n, int m)
-{
+static int min(int n, int m) {
     if (n > m) {
         return m;
     }
     return n;
 }
 
-static const VSFrameRef *VS_CC
-temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
-                       void **frameData, VSFrameContext *frameCtx, VSCore *core,
-                       const VSAPI *vsapi)
-{
+static const VSFrameRef *VS_CC temporalSoftenGetFrame(int n,
+                                                      int activationReason,
+                                                      void **instanceData,
+                                                      void **frameData,
+                                                      VSFrameContext *frameCtx,
+                                                      VSCore *core,
+                                                      const VSAPI *vsapi) {
     TemporalSoftenData *d = (TemporalSoftenData *)*instanceData;
     n = min(max(n, 0), d->vi->numFrames - 1);
     int first = max(n - d->radius, 0);
@@ -332,15 +323,12 @@ temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
     // Not sure why 16... the most we can have is 7*2+1
     const VSFrameRef *src[16] = {
         vsapi->getFrameFilter(n, d->node, frameCtx), // frame n is always src[0]
-        NULL
-    };
-    int frames = 1; // number of effective source frames
+        NULL};
+    int frames = 1;               // number of effective source frames
     int sc_prev = 0, sc_next = 0; // flags for checking scene change
     if (d->scenechange != 0) {
-        sc_prev = vsapi->propGetInt(vsapi->getFramePropsRO(src[0]),
-                                    "_SceneChangePrev", 0, 0);
-        sc_next = vsapi->propGetInt(vsapi->getFramePropsRO(src[0]),
-                                    "_SceneChangeNext", 0, 0);
+        sc_prev = vsapi->propGetInt(vsapi->getFramePropsRO(src[0]), "_SceneChangePrev", 0, 0);
+        sc_next = vsapi->propGetInt(vsapi->getFramePropsRO(src[0]), "_SceneChangeNext", 0, 0);
     }
 
     int num = n - first;
@@ -351,8 +339,8 @@ temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
             continue;
         }
         if (d->scenechange != 0) {
-            sc_prev = vsapi->propGetInt(vsapi->getFramePropsRO(src[frames]),
-                                        "_SceneChangePrev", 0, 0);
+            sc_prev =
+                vsapi->propGetInt(vsapi->getFramePropsRO(src[frames]), "_SceneChangePrev", 0, 0);
         }
         frames++;
     }
@@ -364,8 +352,8 @@ temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
             continue;
         }
         if (d->scenechange != 0) {
-            sc_next = vsapi->propGetInt(vsapi->getFramePropsRO(src[frames]),
-                                        "_SceneChangeNext", 0, 0);
+            sc_next =
+                vsapi->propGetInt(vsapi->getFramePropsRO(src[frames]), "_SceneChangeNext", 0, 0);
         }
         frames++;
     }
@@ -382,8 +370,7 @@ temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
         for (i = 0; i < frames; i++) {
             srcp[i] = vsapi->getReadPtr(src[i], plane);
         }
-        int frame_size = vsapi->getFrameHeight(dst, plane) *
-                         vsapi->getStride(dst, plane);
+        int frame_size = vsapi->getFrameHeight(dst, plane) * vsapi->getStride(dst, plane);
         uint8_t *dstp = vsapi->getWritePtr(dst, plane);
 
         d->proc(dstp, srcp, frames, frame_size, d->threshold[plane]);
@@ -396,27 +383,23 @@ temporalSoftenGetFrame(int n, int activationReason, void **instanceData,
     return dst;
 }
 
-
-static void VS_CC
-temporalSoftenFree(void *instanceData, VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC temporalSoftenFree(void *instanceData, VSCore *core, const VSAPI *vsapi) {
     TemporalSoftenData *d = (TemporalSoftenData *)instanceData;
     vsapi->freeNode(d->node);
     free(d);
 }
 
+#define FAIL_IF_ERROR(cond, ...)                                                                   \
+    {                                                                                              \
+        if (cond) {                                                                                \
+            snprintf(msg, 235, __VA_ARGS__);                                                       \
+            goto fail;                                                                             \
+        }                                                                                          \
+    }
 
-#define FAIL_IF_ERROR(cond, ...) {\
-    if (cond) {\
-        snprintf(msg, 235, __VA_ARGS__);\
-        goto fail;\
-    }\
-}
-
-static void VS_CC
-temporalSoftenCreate(const VSMap *in, VSMap *out, void *userData, VSCore *core,
-                     const VSAPI *vsapi) {
-    TemporalSoftenData d = { 0 };
+static void VS_CC temporalSoftenCreate(
+    const VSMap *in, VSMap *out, void *userData, VSCore *core, const VSAPI *vsapi) {
+    TemporalSoftenData d = {0};
     int err;
     char msg_buff[256] = "TemporalSoften2: ";
     char *msg = msg_buff + strlen(msg_buff);
@@ -427,11 +410,9 @@ temporalSoftenCreate(const VSMap *in, VSMap *out, void *userData, VSCore *core,
     FAIL_IF_ERROR(!d.vi->format || d.vi->width == 0 || d.vi->height == 0,
                   "clip must be constant format");
 
-    FAIL_IF_ERROR(d.vi->format->sampleType != stInteger ||
-                  d.vi->format->bitsPerSample > 16 ||
-                  (d.vi->format->colorFamily != cmYUV &&
-                   d.vi->format->colorFamily != cmRGB &&
-                   d.vi->format->colorFamily != cmGray),
+    FAIL_IF_ERROR(d.vi->format->sampleType != stInteger || d.vi->format->bitsPerSample > 16 ||
+                      (d.vi->format->colorFamily != cmYUV && d.vi->format->colorFamily != cmRGB &&
+                       d.vi->format->colorFamily != cmGray),
                   "only 8..16 bit integer YUV, RGB, or Gray input supported");
 
     int bshift = d.vi->format->bitsPerSample - 8;
@@ -468,18 +449,18 @@ temporalSoftenCreate(const VSMap *in, VSMap *out, void *userData, VSCore *core,
 
     int maximum = 0xFF << bshift;
 
-    FAIL_IF_ERROR(d.radius < 1 || d.radius > 7,
-                  "radius must be between 1 and 7 (inclusive)");
+    FAIL_IF_ERROR(d.radius < 1 || d.radius > 7, "radius must be between 1 and 7 (inclusive)");
 
     FAIL_IF_ERROR(d.threshold[0] < 0 || d.threshold[0] > maximum,
-                  "luma_threshold must be between 0 and %d (inclusive)", maximum);
+                  "luma_threshold must be between 0 and %d (inclusive)",
+                  maximum);
 
     FAIL_IF_ERROR(d.threshold[1] < 0 || d.threshold[2] > maximum,
-                  "chroma_threshold must be between 0 and %d (inclusive)", maximum);
+                  "chroma_threshold must be between 0 and %d (inclusive)",
+                  maximum);
 
     FAIL_IF_ERROR(d.threshold[0] == 0 &&
-                  (d.vi->format->colorFamily == cmRGB ||
-                   d.vi->format->colorFamily == cmGray),
+                      (d.vi->format->colorFamily == cmRGB || d.vi->format->colorFamily == cmGray),
                   "luma_threshold must not be 0 when the input is RGB or Gray");
 
     FAIL_IF_ERROR(d.threshold[0] == 0 && d.threshold[1] == 0,
@@ -489,7 +470,7 @@ temporalSoftenCreate(const VSMap *in, VSMap *out, void *userData, VSCore *core,
 
     switch (bshift) {
     case 0:
-        d.proc =  mode2_8bit_sse2;
+        d.proc = mode2_8bit_sse2;
         break;
     case 1:
     case 2:
@@ -502,9 +483,16 @@ temporalSoftenCreate(const VSMap *in, VSMap *out, void *userData, VSCore *core,
     TemporalSoftenData *data = (TemporalSoftenData *)malloc(sizeof(d));
     *data = d;
 
-    vsapi->createFilter(in, out, "TemporalSoften2", temporalSoftenInit,
-                        temporalSoftenGetFrame, temporalSoftenFree, fmParallel,
-                        0, data, core);
+    vsapi->createFilter(in,
+                        out,
+                        "TemporalSoften2",
+                        temporalSoftenInit,
+                        temporalSoftenGetFrame,
+                        temporalSoftenFree,
+                        fmParallel,
+                        0,
+                        data,
+                        core);
     return;
 
 fail:
@@ -512,16 +500,20 @@ fail:
     vsapi->setError(out, msg_buff);
 }
 
-
 VS_EXTERNAL_API(void)
 VapourSynthPluginInit(VSConfigPlugin configFunc,
-                      VSRegisterFunction registerFunc, VSPlugin *plugin)
-{
-    configFunc("chikuzen.does.not.have.his.own.domain.focus2", "focus2",
+                      VSRegisterFunction registerFunc,
+                      VSPlugin *plugin) {
+    configFunc("chikuzen.does.not.have.his.own.domain.focus2",
+               "focus2",
                "VapourSynth TemporalSoften Filter v" TEMPORALSOFTEN2_VERSION,
-               VAPOURSYNTH_API_VERSION, 1, plugin);
+               VAPOURSYNTH_API_VERSION,
+               1,
+               plugin);
     registerFunc("TemporalSoften2",
                  "clip:clip;radius:int:opt;luma_threshold:int:opt;"
                  "chroma_threshold:int:opt;scenechange:int:opt;mode:int:opt;",
-                 temporalSoftenCreate, 0, plugin);
+                 temporalSoftenCreate,
+                 0,
+                 plugin);
 }

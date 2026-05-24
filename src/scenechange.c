@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
 /*
   scenechange.c: Copyright (C) 2012  Oka Motofumi
 
@@ -18,23 +19,20 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "VapourSynth.h"
+#include <VapourSynth.h>
 
 #ifdef _MSC_VER
-#pragma warning(disable:4244 4996)
 #define snprintf _snprintf
 #endif
 
 #define SCENECHANGE_PLUGIN_VERSION "0.2.0"
 #define LOG_HEADER "# scd scene change detect log version 1\n"
-
 
 typedef struct scenechange_handler scenechange_t;
 
@@ -45,17 +43,17 @@ struct scenechange_handler {
     int interval_v;
     int64_t threshold;
     FILE *log;
-    void (VS_CC *function)(scenechange_t *, int, const uint8_t **, VSFrameRef *,
-                           int *, int *);
+    void(VS_CC *function)(scenechange_t *, int, const uint8_t **, VSFrameRef *, int *, int *);
 };
 
-
-static void VS_CC
-proc_8bit(scenechange_t *sc, int stride, const uint8_t **srcp, VSFrameRef *dst,
-          int *sc_prev, int *sc_next)
-{
-    int w = sc->vi->width, h = sc->vi->height,
-        interval_h = sc->interval_h, interval_v = sc->interval_v;
+static void VS_CC proc_8bit(scenechange_t *sc,
+                            int stride,
+                            const uint8_t **srcp,
+                            VSFrameRef *dst,
+                            int *sc_prev,
+                            int *sc_next) {
+    int w = sc->vi->width, h = sc->vi->height, interval_h = sc->interval_h,
+        interval_v = sc->interval_v;
     int64_t diff_prev = 0, diff_next = 0;
 
     for (int y = 0; y < h; y += interval_v) {
@@ -68,23 +66,22 @@ proc_8bit(scenechange_t *sc, int stride, const uint8_t **srcp, VSFrameRef *dst,
         srcp[2] += stride;
     }
 
-    *sc_prev = (diff_prev  > sc->threshold);
-    *sc_next = (diff_next  > sc->threshold);
+    *sc_prev = (diff_prev > sc->threshold);
+    *sc_next = (diff_next > sc->threshold);
 }
 
-
-static void VS_CC
-proc_16bit(scenechange_t *sc, int stride, const uint8_t **srcp8,
-           VSFrameRef *dst, int *sc_prev, int *sc_next)
-{
+static void VS_CC proc_16bit(scenechange_t *sc,
+                             int stride,
+                             const uint8_t **srcp8,
+                             VSFrameRef *dst,
+                             int *sc_prev,
+                             int *sc_next) {
     int w = sc->vi->width;
     int h = sc->vi->height;
     int interval_h = sc->interval_h;
     int interval_v = sc->interval_v;
     int64_t diff_prev = 0, diff_next = 0;
-    const uint16_t *srcp[3] = {
-        (uint16_t *)srcp8[0], (uint16_t *)srcp8[1], (uint16_t *)srcp8[2]
-    };
+    const uint16_t *srcp[3] = {(uint16_t *)srcp8[0], (uint16_t *)srcp8[1], (uint16_t *)srcp8[2]};
     stride >>= 1;
 
     for (int y = 0; y < h; y += interval_v) {
@@ -97,16 +94,17 @@ proc_16bit(scenechange_t *sc, int stride, const uint8_t **srcp8,
         srcp[2] += stride;
     }
 
-    *sc_prev = (diff_prev  > sc->threshold);
-    *sc_next = (diff_next  > sc->threshold);
+    *sc_prev = (diff_prev > sc->threshold);
+    *sc_next = (diff_next > sc->threshold);
 }
 
-
-static const VSFrameRef * VS_CC
-get_frame(int n, int activation_reason, void **instance_data,
-          void **frame_data, VSFrameContext *frame_ctx, VSCore *core,
-          const VSAPI *vsapi)
-{
+static const VSFrameRef *VS_CC get_frame(int n,
+                                         int activation_reason,
+                                         void **instance_data,
+                                         void **frame_data,
+                                         VSFrameContext *frame_ctx,
+                                         VSCore *core,
+                                         const VSAPI *vsapi) {
     scenechange_t *sc = (scenechange_t *)*instance_data;
     int prev = n <= 0 ? 0 : n - 1;
     int next = n >= sc->vi->numFrames ? sc->vi->numFrames - 1 : n + 1;
@@ -143,10 +141,8 @@ get_frame(int n, int activation_reason, void **instance_data,
     sc->function(sc, stride, srcp, dst, &sc_prev, &sc_next);
 
 proc_finish:
-    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangePrev", sc_prev,
-                      paReplace);
-    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangeNext", sc_next,
-                      paReplace);
+    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangePrev", sc_prev, paReplace);
+    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangeNext", sc_next, paReplace);
 
     if (sc->log && (sc_prev + sc_next != 0)) {
         fprintf(sc->log, "%d %d %d\n", n, sc_prev, sc_next);
@@ -159,20 +155,14 @@ proc_finish:
     return dst;
 }
 
-
-static void VS_CC
-init_filter(VSMap *in, VSMap *out, void **instance_data, VSNode *node,
-            VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC init_filter(
+    VSMap *in, VSMap *out, void **instance_data, VSNode *node, VSCore *core, const VSAPI *vsapi) {
     scenechange_t *sc = (scenechange_t *)*instance_data;
     vsapi->setVideoInfo(sc->vi, 1, node);
     vsapi->clearMap(in);
 }
 
-
-static void VS_CC
-close_filter(void *instance_data, VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC close_filter(void *instance_data, VSCore *core, const VSAPI *vsapi) {
     scenechange_t *sc = (scenechange_t *)instance_data;
     if (!sc) {
         return;
@@ -189,9 +179,7 @@ close_filter(void *instance_data, VSCore *core, const VSAPI *vsapi)
     sc = NULL;
 }
 
-
-static int VS_CC get_interval(int size)
-{
+static int VS_CC get_interval(int size) {
     int interval = 1;
 
     // The resolution required for scene change detection will be less than QVGA.
@@ -202,19 +190,17 @@ static int VS_CC get_interval(int size)
     return interval;
 }
 
-
-#define FAIL_IF_ERROR(cond, ...) {\
-    if (cond) {\
-        snprintf(msg, 240, __VA_ARGS__);\
-        goto fail;\
-    }\
-}
+#define FAIL_IF_ERROR(cond, ...)                                                                   \
+    {                                                                                              \
+        if (cond) {                                                                                \
+            snprintf(msg, 240, __VA_ARGS__);                                                       \
+            goto fail;                                                                             \
+        }                                                                                          \
+    }
 
 static void VS_CC
-create_detect(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
-           const VSAPI *vsapi)
-{
-    char msg_buff[256]  = "Detect: ";
+create_detect(const VSMap *in, VSMap *out, void *user_data, VSCore *core, const VSAPI *vsapi) {
+    char msg_buff[256] = "Detect: ";
     char *msg = msg_buff + strlen(msg_buff);
 
     scenechange_t *sc = (scenechange_t *)calloc(sizeof(scenechange_t), 1);
@@ -222,13 +208,10 @@ create_detect(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
 
     sc->node = vsapi->propGetNode(in, "clip", 0, 0);
     sc->vi = vsapi->getVideoInfo(sc->node);
-    FAIL_IF_ERROR(!sc->vi->width || !sc->vi->height || !sc->vi->format,
-                  "not constant format");
-    FAIL_IF_ERROR(sc->vi->format->colorFamily != cmGray &&
-                  sc->vi->format->colorFamily != cmYUV,
+    FAIL_IF_ERROR(!sc->vi->width || !sc->vi->height || !sc->vi->format, "not constant format");
+    FAIL_IF_ERROR(sc->vi->format->colorFamily != cmGray && sc->vi->format->colorFamily != cmYUV,
                   "not Gray/YUV format");
-    FAIL_IF_ERROR(sc->vi->format->sampleType != stInteger,
-                  "float samples are unsupported");
+    FAIL_IF_ERROR(sc->vi->format->sampleType != stInteger, "float samples are unsupported");
 
     int err;
     int interval = (int)vsapi->propGetInt(in, "interval_h", 0, &err);
@@ -245,8 +228,7 @@ create_detect(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
     }
     sc->interval_v = interval;
 
-    int resolution =
-        (sc->vi->width / sc->interval_h) * (sc->vi->height / sc->interval_v);
+    int resolution = (sc->vi->width / sc->interval_h) * (sc->vi->height / sc->interval_v);
 
     int shift = sc->vi->format->bitsPerSample - 8;
     sc->threshold = (int)vsapi->propGetInt(in, "thresh", 0, &err);
@@ -264,8 +246,8 @@ create_detect(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
         fprintf(sc->log, LOG_HEADER "frames: %d\n", sc->vi->numFrames);
     }
 
-    vsapi->createFilter(in, out, "Detect", init_filter, get_frame,
-                        close_filter, fmParallel, 0, sc, core);
+    vsapi->createFilter(
+        in, out, "Detect", init_filter, get_frame, close_filter, fmParallel, 0, sc, core);
 
     return;
 
@@ -275,19 +257,19 @@ fail:
 }
 #undef FAIL_IF_ERROR
 
-
 typedef struct {
     VSNodeRef *node;
     const VSVideoInfo *vi;
     uint8_t *is_scene_change;
 } apply_log_t;
 
-
-static const VSFrameRef * VS_CC
-get_frame_apply(int n, int activation_reason, void **instance_data,
-                void **frame_data, VSFrameContext *frame_ctx, VSCore *core,
-                const VSAPI *vsapi)
-{
+static const VSFrameRef *VS_CC get_frame_apply(int n,
+                                               int activation_reason,
+                                               void **instance_data,
+                                               void **frame_data,
+                                               VSFrameContext *frame_ctx,
+                                               VSCore *core,
+                                               const VSAPI *vsapi) {
     apply_log_t *al = (apply_log_t *)*instance_data;
     if (n > al->vi->numFrames - 1) {
         n = al->vi->numFrames - 1;
@@ -304,29 +286,23 @@ get_frame_apply(int n, int activation_reason, void **instance_data,
 
     const VSFrameRef *src = vsapi->getFrameFilter(n, al->node, frame_ctx);
     VSFrameRef *dst = vsapi->copyFrame(src, core);
-    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangePrev",
-                      (al->is_scene_change[n] & 2), paReplace);
-    vsapi->propSetInt(vsapi->getFramePropsRW(dst), "_SceneChangeNext",
-                      (al->is_scene_change[n] & 1), paReplace);
+    vsapi->propSetInt(
+        vsapi->getFramePropsRW(dst), "_SceneChangePrev", (al->is_scene_change[n] & 2), paReplace);
+    vsapi->propSetInt(
+        vsapi->getFramePropsRW(dst), "_SceneChangeNext", (al->is_scene_change[n] & 1), paReplace);
     vsapi->freeFrame(src);
 
     return dst;
 }
 
-
-static void VS_CC
-init_apply(VSMap *in, VSMap *out, void **instance_data, VSNode *node,
-           VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC init_apply(
+    VSMap *in, VSMap *out, void **instance_data, VSNode *node, VSCore *core, const VSAPI *vsapi) {
     apply_log_t *al = (apply_log_t *)*instance_data;
     vsapi->setVideoInfo(al->vi, 1, node);
     vsapi->clearMap(in);
 }
 
-
-static void VS_CC
-close_apply(void *instance_data, VSCore *core, const VSAPI *vsapi)
-{
+static void VS_CC close_apply(void *instance_data, VSCore *core, const VSAPI *vsapi) {
     apply_log_t *al = (apply_log_t *)instance_data;
     if (!al) {
         return;
@@ -343,14 +319,10 @@ close_apply(void *instance_data, VSCore *core, const VSAPI *vsapi)
     al = NULL;
 }
 
-
-static const char * VS_CC
-parse_log(apply_log_t *al, FILE *log)
-{
+static const char *VS_CC parse_log(apply_log_t *al, FILE *log) {
     const int buff_size = 1024;
     char read_buff[buff_size];
-    if (!fgets(read_buff, buff_size, log) ||
-        strcmp(read_buff, LOG_HEADER) != 0) {
+    if (!fgets(read_buff, buff_size, log) || strcmp(read_buff, LOG_HEADER) != 0) {
         return "unsupported log file";
     }
 
@@ -369,8 +341,8 @@ parse_log(apply_log_t *al, FILE *log)
     }
 
     while (fgets(read_buff, buff_size, log)) {
-        if (sscanf(read_buff, "%d %d %d\n", &num, & prev, &next) == EOF ||
-            num < 0 || num >= al->vi->numFrames) {
+        if (sscanf(read_buff, "%d %d %d\n", &num, &prev, &next) == EOF || num < 0 ||
+            num >= al->vi->numFrames) {
             continue;
         };
         al->is_scene_change[num] = ((!!prev << 1) | !!next);
@@ -383,18 +355,16 @@ parse_log(apply_log_t *al, FILE *log)
 #undef BUFF_SIZE
 }
 
-
-#define FAIL_IF_ERROR(cond, ...) {\
-    if (cond) {\
-        snprintf(msg, 240, __VA_ARGS__);\
-        goto fail2;\
-    }\
-}
+#define FAIL_IF_ERROR(cond, ...)                                                                   \
+    {                                                                                              \
+        if (cond) {                                                                                \
+            snprintf(msg, 240, __VA_ARGS__);                                                       \
+            goto fail2;                                                                            \
+        }                                                                                          \
+    }
 
 static void VS_CC
-create_apply_log(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
-                 const VSAPI *vsapi)
-{
+create_apply_log(const VSMap *in, VSMap *out, void *user_data, VSCore *core, const VSAPI *vsapi) {
     char msg_buff[256] = "ApplyLog: ";
     char *msg = msg_buff + strlen(msg_buff);
     FILE *log = NULL;
@@ -412,8 +382,8 @@ create_apply_log(const VSMap *in, VSMap *out, void *user_data, VSCore *core,
     const char *ret = parse_log(al, log);
     FAIL_IF_ERROR(ret, "%s", ret);
 
-    vsapi->createFilter(in, out, "ApplyLog", init_apply, get_frame_apply,
-                        close_apply, fmParallel, 0, al, core);
+    vsapi->createFilter(
+        in, out, "ApplyLog", init_apply, get_frame_apply, close_apply, fmParallel, 0, al, core);
 
     return;
 
@@ -425,16 +395,19 @@ fail2:
     vsapi->setError(out, msg_buff);
 }
 
-
 VS_EXTERNAL_API(void)
-VapourSynthPluginInit(VSConfigPlugin conf, VSRegisterFunction reg,
-                      VSPlugin *plugin)
-{
-    conf("chikuzen.does.not.have.his.own.domain.scd", "scd",
-         "Scene change detect filter for VapourSynth v"
-         SCENECHANGE_PLUGIN_VERSION, VAPOURSYNTH_API_VERSION, 1, plugin);
+VapourSynthPluginInit(VSConfigPlugin conf, VSRegisterFunction reg, VSPlugin *plugin) {
+    conf("chikuzen.does.not.have.his.own.domain.scd",
+         "scd",
+         "Scene change detect filter for VapourSynth v" SCENECHANGE_PLUGIN_VERSION,
+         VAPOURSYNTH_API_VERSION,
+         1,
+         plugin);
     reg("Detect",
         "clip:clip;thresh:int:opt;interval_h:int:opt;interval_v:int:opt;"
-        "log:data:opt;", create_detect, NULL, plugin);
+        "log:data:opt;",
+        create_detect,
+        NULL,
+        plugin);
     reg("ApplyLog", "clip:clip;log:data;", create_apply_log, NULL, plugin);
 }

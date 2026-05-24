@@ -21,9 +21,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i[3-6]86|x86)$")
     set(TEMPORALSOFTEN_SIMD_FLAGS -msse2 -mfpmath=sse)
   endif()
 else()
-  message(FATAL_ERROR
-    "temporalsoften2 currently only supports x86/x86_64. Architecture "
-    "'${CMAKE_SYSTEM_PROCESSOR}' will be supported in a follow-up commit.")
+  message(STATUS
+    "No SIMD backend for '${CMAKE_SYSTEM_PROCESSOR}'; using the generic scalar fallback.")
+  list(APPEND TEMPORALSOFTEN_SRCS temporalsoften_generic.c)
 endif()
 
 add_library(temporalsoften2 MODULE ${TEMPORALSOFTEN_SRCS})

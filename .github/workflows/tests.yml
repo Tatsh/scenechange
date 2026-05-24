@@ -10,7 +10,7 @@ jobs:
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
-          sudo apt-get install -y lcov ninja-build
+          sudo apt-get install -y lcov libcmocka-dev ninja-build pkg-config
       - name: 'Fetch VapourSynth headers'
         run: >-
           git clone --depth 1 --branch R72

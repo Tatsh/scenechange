@@ -35,6 +35,7 @@ fileflags
 fileflagsmask
 fileos
 filesubtype
+fetchcontent
 fileversion
 fout
 foxundermoon
@@ -46,6 +47,7 @@ jinja
 jsonnet
 jsonschema
 judgment
+libcmocka
 libera
 libscenechange
 libsonnet

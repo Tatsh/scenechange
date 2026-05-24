@@ -4,6 +4,7 @@ autobuild
 autoinstall
 avisynth
 bitdepth
+bndl
 bsky
 buildsystems
 chikuzen
@@ -25,10 +26,16 @@ dvapoursynth
 efective
 esac
 esbenp
+fileflags
+fileflagsmask
+fileos
+filesubtype
+fileversion
 fout
 foxundermoon
 frob
 gmock
+ifdef
 iwyu
 jinja
 jsonnet
@@ -55,6 +62,7 @@ oneline
 packus
 pluginsdir
 preapproved
+productversion
 pylock
 pyproject
 pythonpath
@@ -63,6 +71,7 @@ regen
 ripgreprc
 scenechange
 schemafile
+sectcreate
 shellcheck
 shellformat
 snapcraft
@@ -88,6 +97,7 @@ vcltq
 vdupq
 vendored
 venv
+versioninfo
 vmovl
 vmull
 vqaddq
@@ -98,6 +108,7 @@ vsapi
 vshlq
 vshrn
 vsubq
+winver
 wiswa
 wiswa's
 worktree

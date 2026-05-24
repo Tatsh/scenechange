@@ -1,5 +1,7 @@
 Ångström
 appimage
+autobuild
+autoinstall
 avisynth
 bitdepth
 bsky
@@ -10,14 +12,18 @@ cmplt
 commitizen
 cooldown
 coveragerc
+cpack
 dashcam
 datarootdir
 dbuild
+dcmake
 denoiser
+docdir
 docstrings
 dstpx
 dvapoursynth
 efective
+esac
 esbenp
 fout
 foxundermoon
@@ -42,6 +48,7 @@ modframe
 motofumi
 msse
 msvc
+msys
 mulhi
 mypy
 oneline
@@ -59,6 +66,7 @@ schemafile
 shellcheck
 shellformat
 snapcraft
+softprops
 srai
 srcpf
 srcs
@@ -66,6 +74,8 @@ tagfile
 tatsh
 temporalsoften
 thrsh
+tolower
+tostring
 tsoften
 udvare
 undraft

@@ -319,17 +319,18 @@ static void VS_CC close_apply(void *instance_data, VSCore *core, const VSAPI *vs
     al = NULL;
 }
 
+#define SCD_PARSE_LOG_BUFF_SIZE 1024
+
 static const char *VS_CC parse_log(apply_log_t *al, FILE *log) {
-    const int buff_size = 1024;
-    char read_buff[buff_size];
-    if (!fgets(read_buff, buff_size, log) || strcmp(read_buff, LOG_HEADER) != 0) {
+    char read_buff[SCD_PARSE_LOG_BUFF_SIZE];
+    if (!fgets(read_buff, SCD_PARSE_LOG_BUFF_SIZE, log) || strcmp(read_buff, LOG_HEADER) != 0) {
         return "unsupported log file";
     }
 
     int num = 0;
     int prev = 0;
     int next = 0;
-    fgets(read_buff, buff_size, log);
+    fgets(read_buff, SCD_PARSE_LOG_BUFF_SIZE, log);
     sscanf(read_buff, "frames: %d\n", &num);
     if (num != al->vi->numFrames) {
         return "number of frames does not match";
@@ -340,7 +341,7 @@ static const char *VS_CC parse_log(apply_log_t *al, FILE *log) {
         return "out of memory";
     }
 
-    while (fgets(read_buff, buff_size, log)) {
+    while (fgets(read_buff, SCD_PARSE_LOG_BUFF_SIZE, log)) {
         if (sscanf(read_buff, "%d %d %d\n", &num, &prev, &next) == EOF || num < 0 ||
             num >= al->vi->numFrames) {
             continue;

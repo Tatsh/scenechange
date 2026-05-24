@@ -32,14 +32,16 @@ static void VS_CC temporalSoftenInit(
     vsapi->setVideoInfo(d->vi, 1, node);
 }
 
-static int max(int n, int m) {
+// MSVC's <stdlib.h> defines max and min as macros, so the wrapper functions
+// have to use distinct names.
+static int ts_max(int n, int m) {
     if (n < m) {
         return m;
     }
     return n;
 }
 
-static int min(int n, int m) {
+static int ts_min(int n, int m) {
     if (n > m) {
         return m;
     }
@@ -54,9 +56,9 @@ static const VSFrameRef *VS_CC temporalSoftenGetFrame(int n,
                                                       VSCore *core,
                                                       const VSAPI *vsapi) {
     TemporalSoftenData *d = (TemporalSoftenData *)*instanceData;
-    n = min(max(n, 0), d->vi->numFrames - 1);
-    int first = max(n - d->radius, 0);
-    int last = min(n + d->radius, d->vi->numFrames - 1);
+    n = ts_min(ts_max(n, 0), d->vi->numFrames - 1);
+    int first = ts_max(n - d->radius, 0);
+    int last = ts_min(n + d->radius, d->vi->numFrames - 1);
     int i;
 
     if (activationReason == arInitial) {

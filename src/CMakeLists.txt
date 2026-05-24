@@ -9,7 +9,24 @@ else()
   target_compile_options(scenechange PRIVATE ${SCENECHANGE_GNU_WARNINGS})
 endif()
 
-add_library(temporalsoften2 MODULE temporalsoften.c)
+set(TEMPORALSOFTEN_SRCS temporalsoften.c)
+set(TEMPORALSOFTEN_SIMD_FLAGS "")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i[3-6]86|x86)$")
+  list(APPEND TEMPORALSOFTEN_SRCS temporalsoften_x86.c)
+  if(MSVC)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+      set(TEMPORALSOFTEN_SIMD_FLAGS /arch:SSE2)
+    endif()
+  else()
+    set(TEMPORALSOFTEN_SIMD_FLAGS -msse2 -mfpmath=sse)
+  endif()
+else()
+  message(FATAL_ERROR
+    "temporalsoften2 currently only supports x86/x86_64. Architecture "
+    "'${CMAKE_SYSTEM_PROCESSOR}' will be supported in a follow-up commit.")
+endif()
+
+add_library(temporalsoften2 MODULE ${TEMPORALSOFTEN_SRCS})
 target_link_libraries(temporalsoften2 PRIVATE PkgConfig::VAPOURSYNTH)
 if(NOT MSVC)
   find_library(MATH_LIBRARY m)
@@ -20,8 +37,9 @@ endif()
 if(MSVC)
   target_compile_options(temporalsoften2 PRIVATE ${SCENECHANGE_MSVC_WARNINGS})
 else()
-  target_compile_options(temporalsoften2 PRIVATE ${SCENECHANGE_GNU_WARNINGS} -msse2)
+  target_compile_options(temporalsoften2 PRIVATE ${SCENECHANGE_GNU_WARNINGS})
 endif()
+target_compile_options(temporalsoften2 PRIVATE ${TEMPORALSOFTEN_SIMD_FLAGS})
 
 install(TARGETS scenechange temporalsoften2
         LIBRARY DESTINATION "${VAPOURSYNTH_PLUGINS_DIR}"

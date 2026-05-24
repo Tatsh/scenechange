@@ -1,0 +1,156 @@
+jobs:
+  build-linux:
+    runs-on: '${{ matrix.arch.runner }}'
+    steps:
+      - uses: 'actions/checkout@v6'
+        with:
+          fetch-depth: 0
+      - name: 'Install dependencies'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build pkg-config vapoursynth
+      - name: 'Configure'
+        run: >-
+          cmake -G Ninja -B '${{ github.workspace }}/build'
+          --install-prefix '${{ github.workspace }}/build/prefix'
+          -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
+      - name: 'Build'
+        run: 'cmake --build ${{ github.workspace }}/build --verbose'
+      - if: "matrix.build-type == 'Release'"
+        name: 'Package'
+        run: >-
+          cpack -C '${{ matrix.build-type }}'
+          --config '${{ github.workspace }}/build/CPackConfig.cmake'
+          -B '${{ github.workspace }}/build' --verbose
+      - if: "matrix.build-type == 'Release'"
+        name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@v7'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-linux-${{ matrix.arch.suffix }}'
+          path: '${{ github.workspace }}/build/scenechange-*-linux-*.zip'
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - runner: 'ubuntu-latest'
+            suffix: 'x86_64'
+          - runner: 'ubuntu-24.04-arm'
+            suffix: 'arm64'
+        build-type: ['Debug', 'Release']
+  build-macos:
+    runs-on: '${{ matrix.os.runner }}'
+    steps:
+      - uses: 'actions/checkout@v6'
+        with:
+          fetch-depth: 0
+      - name: 'Install dependencies'
+        run: 'brew install ninja vapoursynth'
+      - name: 'Configure'
+        run: >-
+          cmake -G Ninja -B '${{ github.workspace }}/build'
+          --install-prefix '${{ github.workspace }}/build/prefix'
+          -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
+      - name: 'Build'
+        run: 'cmake --build ${{ github.workspace }}/build --verbose'
+      - if: "matrix.build-type == 'Release'"
+        name: 'Package'
+        run: >-
+          cpack -C '${{ matrix.build-type }}'
+          --config '${{ github.workspace }}/build/CPackConfig.cmake'
+          -B '${{ github.workspace }}/build' --verbose
+      - if: "matrix.build-type == 'Release'"
+        name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@v7'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-macos-${{ matrix.os.suffix }}'
+          path: '${{ github.workspace }}/build/scenechange-*-macos-*.zip'
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ['Debug', 'Release']
+        os:
+          - runner: 'macos-latest'
+            suffix: 'arm64'
+          - runner: 'macos-15-intel'
+            suffix: 'x86_64'
+  build-windows:
+    runs-on: '${{ matrix.sys.runner }}'
+    steps:
+      - id: 'fixed_workspace'
+        name: 'Fix path'
+        run: >-
+          echo out=$("${{ github.workspace }}" -Replace "\\","/") | Out-File
+          -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: 'actions/checkout@v6'
+        with:
+          fetch-depth: 0
+      - name: 'Fetch VapourSynth headers'
+        shell: 'bash'
+        run: |
+          git clone --depth 1 --branch R72 https://github.com/vapoursynth/vapoursynth.git \
+            "${{ steps.fixed_workspace.outputs.out }}/vendor/vapoursynth"
+      - name: 'Configure'
+        run: >-
+          cmake -G "Visual Studio 17 2022" -A ${{ matrix.sys.cmake_arch }}
+          -B '${{ steps.fixed_workspace.outputs.out }}/build'
+          --install-prefix '${{ steps.fixed_workspace.outputs.out }}/build/prefix'
+          -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
+          -DVAPOURSYNTH_INCLUDE_DIR='${{ steps.fixed_workspace.outputs.out }}/vendor/vapoursynth/include'
+      - name: 'Build'
+        run: >-
+          cmake --build '${{ steps.fixed_workspace.outputs.out }}/build'
+          --config '${{ matrix.build-type }}' --verbose
+      - if: "matrix.build-type == 'Release'"
+        name: 'Package'
+        run: >-
+          cpack -C '${{ matrix.build-type }}'
+          --config '${{ steps.fixed_workspace.outputs.out }}/build/CPackConfig.cmake'
+          -B '${{ steps.fixed_workspace.outputs.out }}/build' --verbose
+      - if: "matrix.build-type == 'Release'"
+        name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@v7'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-windows-${{ matrix.sys.arch }}'
+          path: '${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip'
+      - if: "matrix.build-type == 'Release'"
+        name: 'Attest'
+        uses: 'actions/attest-build-provenance@v4'
+        with:
+          subject-path: |
+            ${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip
+      - if: "github.ref_type == 'tag' && matrix.build-type == 'Release'"
+        name: 'Upload to draft release'
+        uses: 'softprops/action-gh-release@v3'
+        with:
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ['Debug', 'Release']
+        sys:
+          - arch: 'x86_64'
+            cmake_arch: 'x64'
+            runner: 'windows-latest'
+          - arch: 'arm64'
+            cmake_arch: 'ARM64'
+            runner: 'windows-11-arm'
+name: 'CMake'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+permissions:
+  attestations: 'write'
+  contents: 'write'
+  id-token: 'write'

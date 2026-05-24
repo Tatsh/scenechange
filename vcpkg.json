@@ -4,6 +4,12 @@
   ],
   "description": "Scene change detection plugin for VapourSynth.",
   "documentation": "https://scenechange.readthedocs.org",
+  "features": {
+    "tests": {
+      "description": "Build the unit-test suite.",
+      "dependencies": ["cmocka"]
+    }
+  },
   "homepage": "https://tatsh.github.io/scenechange/",
   "license": "LGPL-2.1-or-later",
   "maintainers": [

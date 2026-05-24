@@ -30,6 +30,14 @@
       version_files+: ['src/scenechange.c', 'src/temporalsoften.c', 'temporalsoften2.py'],
     },
   },
+  vcpkg+: {
+    features: {
+      tests: {
+        description: 'Build the unit-test suite.',
+        dependencies: ['cmocka'],
+      },
+    },
+  },
   package_json+: {
     cspell+: {
       ignorePaths+: [

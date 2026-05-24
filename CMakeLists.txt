@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 project(scenechange VERSION 0.2.0 LANGUAGES C)
 
 include(FeatureSummary)

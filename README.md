@@ -41,7 +41,7 @@ together so callers only need a single function call.
 Requirements:
 
 - A C99 compiler (GCC, Clang, or MSVC).
-- CMake 3.31 or newer, and Ninja (or any other generator).
+- CMake 3.28 or newer, and Ninja (or any other generator).
 - VapourSynth development headers and `vapoursynth.pc` (`vapoursynth-dev` or your distribution's
   equivalent).
 

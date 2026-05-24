@@ -11,7 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- CMake-based build system (CMake 3.31 or newer, C99) that produces the `libscenechange.so`
+- CMake-based build system (CMake 3.28 or newer, C99) that produces the `libscenechange.so`
   (namespace `scd`) and `libtemporalsoften2.so` (namespace `focus2`) plugins as MODULE libraries.
 - VapourSynth discovery via `pkg-config`, with the install destination taken from
   `pkg-config --variable=pluginsdir vapoursynth`, falling back to

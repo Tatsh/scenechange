@@ -43,6 +43,43 @@ else()
 endif()
 target_compile_options(temporalsoften2 PRIVATE ${TEMPORALSOFTEN_SIMD_FLAGS})
 
+# Per-target metadata: Windows resource files for DLL VERSIONINFO, macOS
+# embedded Info.plist via -sectcreate. Both pull project version and
+# common attribution from the CMake project() definition.
+if(WIN32)
+  enable_language(RC)
+  set(SCENECHANGE_RC_COMPANY "Tatsh")
+  set(SCENECHANGE_RC_COPYRIGHT "Copyright (C) 2012 Oka Motofumi; LGPL-2.1-or-later")
+
+  set(SCENECHANGE_RC_DESCRIPTION "Scene change detection plugin for VapourSynth")
+  set(SCENECHANGE_RC_INTERNAL_NAME "scenechange")
+  set(SCENECHANGE_RC_ORIGINAL_FILENAME "scenechange.dll")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/scenechange.rc" @ONLY)
+  target_sources(scenechange PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/scenechange.rc")
+
+  set(SCENECHANGE_RC_DESCRIPTION "VapourSynth TemporalSoften filter")
+  set(SCENECHANGE_RC_INTERNAL_NAME "temporalsoften2")
+  set(SCENECHANGE_RC_ORIGINAL_FILENAME "temporalsoften2.dll")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/temporalsoften2.rc" @ONLY)
+  target_sources(temporalsoften2 PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/temporalsoften2.rc")
+elseif(APPLE)
+  set(SCENECHANGE_PLIST_COPYRIGHT "Copyright (C) 2012 Oka Motofumi; LGPL-2.1-or-later")
+
+  set(SCENECHANGE_PLIST_NAME "scenechange")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/scenechange.plist" @ONLY)
+  target_link_options(scenechange PRIVATE
+    "LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_BINARY_DIR}/scenechange.plist")
+
+  set(SCENECHANGE_PLIST_NAME "temporalsoften2")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/temporalsoften2.plist" @ONLY)
+  target_link_options(temporalsoften2 PRIVATE
+    "LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_BINARY_DIR}/temporalsoften2.plist")
+endif()
+
 if(MSVC)
   # MSVC builds ship as a flat ZIP that users extract into their VapourSynth
   # plugin directory. MSYS2/MinGW Windows builds install into an FHS-like

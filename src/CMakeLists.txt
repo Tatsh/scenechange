@@ -20,6 +20,8 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i[3-6]86|x86)$")
   else()
     set(TEMPORALSOFTEN_SIMD_FLAGS -msse2 -mfpmath=sse)
   endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+  list(APPEND TEMPORALSOFTEN_SRCS temporalsoften_aarch64.c)
 else()
   message(STATUS
     "No SIMD backend for '${CMAKE_SYSTEM_PROCESSOR}'; using the generic scalar fallback.")

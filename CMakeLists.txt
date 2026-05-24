@@ -35,6 +35,13 @@ set(VAPOURSYNTH_PLUGINS_DIR "${CMAKE_INSTALL_LIBDIR}/vapoursynth"
 
 option(BUILD_DOCS "Build documentation." OFF)
 option(INSTALL_DOCS "Install documentation." OFF)
+option(BUILD_TESTS "Build the unit-test suite under tests/." OFF)
+option(SCENECHANGE_COVERAGE "Enable code-coverage instrumentation (GCC/Clang only)." OFF)
+
+if(SCENECHANGE_COVERAGE AND NOT MSVC)
+  add_compile_options(--coverage -O0 -g)
+  add_link_options(--coverage)
+endif()
 
 if(BUILD_DOCS)
   set(DOXYGEN_GENERATE_TAGFILE "${CMAKE_BINARY_DIR}/html/${CMAKE_PROJECT_NAME}.tags")
@@ -51,6 +58,11 @@ if(BUILD_DOCS)
 endif()
 
 add_subdirectory(src)
+
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

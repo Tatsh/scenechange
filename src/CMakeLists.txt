@@ -9,9 +9,16 @@ else()
   target_compile_options(scenechange PRIVATE ${SCENECHANGE_GNU_WARNINGS})
 endif()
 
+option(SCENECHANGE_FORCE_GENERIC
+       "Force the generic scalar backend even on architectures that have a SIMD one."
+       OFF)
+
 set(TEMPORALSOFTEN_SRCS temporalsoften.c)
 set(TEMPORALSOFTEN_SIMD_FLAGS "")
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i[3-6]86|x86)$")
+if(SCENECHANGE_FORCE_GENERIC)
+  message(STATUS "SCENECHANGE_FORCE_GENERIC=ON; using the generic scalar backend.")
+  list(APPEND TEMPORALSOFTEN_SRCS temporalsoften_generic.c)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i[3-6]86|x86)$")
   list(APPEND TEMPORALSOFTEN_SRCS temporalsoften_x86.c)
   if(MSVC)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)

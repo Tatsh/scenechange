@@ -1,0 +1,79 @@
+jobs:
+  tests:
+    permissions:
+      contents: 'write'
+    runs-on: '${{ matrix.backend.runner }}'
+    steps:
+      - uses: 'actions/checkout@v6'
+        with:
+          fetch-depth: 0
+      - name: 'Install dependencies'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov ninja-build
+      - name: 'Fetch VapourSynth headers'
+        run: >-
+          git clone --depth 1 --branch R72
+          https://github.com/vapoursynth/vapoursynth.git
+          '${{ github.workspace }}/vendor/vapoursynth'
+      - name: 'Configure'
+        run: >-
+          cmake -G Ninja -B '${{ github.workspace }}/build'
+          --install-prefix '${{ github.workspace }}/build/prefix'
+          -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
+          -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
+          -DBUILD_TESTS=ON
+          -DSCENECHANGE_COVERAGE=ON
+          ${{ matrix.backend.force_generic && '-DSCENECHANGE_FORCE_GENERIC=ON' || '' }}
+      - name: 'Build'
+        run: 'cmake --build ${{ github.workspace }}/build --verbose'
+      - name: 'Run tests'
+        run: 'ctest --test-dir ${{ github.workspace }}/build/tests --output-on-failure'
+      - if: "matrix.build-type == 'Debug'"
+        name: 'Generate coverage information'
+        run: >-
+          lcov -c -d '${{ github.workspace }}/build' -o coverage.lcov
+          --exclude build
+          --exclude tests
+          --exclude '*/_deps/*'
+          --include '*/src/*'
+          --keep-going
+      - if: "matrix.build-type == 'Debug'"
+        name: 'Coveralls'
+        uses: 'coverallsapp/github-action@v2'
+        with:
+          file: 'coverage.lcov'
+          flag-name: '${{ matrix.backend.suffix }}-${{ matrix.build-type }}'
+          parallel: true
+    strategy:
+      fail-fast: false
+      matrix:
+        backend:
+          - force_generic: false
+            runner: 'ubuntu-latest'
+            suffix: 'x86_64'
+          - force_generic: false
+            runner: 'ubuntu-24.04-arm'
+            suffix: 'aarch64'
+          - force_generic: true
+            runner: 'ubuntu-latest'
+            suffix: 'generic'
+        build-type: ['Debug', 'Release']
+  finish-coveralls:
+    needs: 'tests'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Finalise Coveralls report'
+        uses: 'coverallsapp/github-action@v2'
+        with:
+          parallel-finished: true
+name: 'Tests'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+permissions:
+  contents: 'read'

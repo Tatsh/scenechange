@@ -5,6 +5,9 @@
   version: '0.2.0',
   license: 'LGPL-2.1-or-later',
   description: 'Scene change detection plugin for VapourSynth.',
+  authors+: [
+    { 'family-names': 'Motofumi', 'given-names': 'Oka', email: 'chikuzen.mo@gmail.com' },
+  ],
   custom_project_badges: [
     {
       anchor: '[![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)]',

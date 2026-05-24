@@ -1,6 +1,8 @@
 authors:
   - family-names: 'Udvare'
     given-names: 'Andrew'
+  - family-names: 'Motofumi'
+    given-names: 'Oka'
 cff-version: '1.2.0'
 date-released: '2026-05-24'
 message: 'If you use this software, please cite it as below.'

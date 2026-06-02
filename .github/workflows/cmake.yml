@@ -86,7 +86,7 @@ jobs:
   build-windows:
     permissions:
       attestations: 'write'
-      contents: 'write'
+      contents: 'read'
       id-token: 'write'
     runs-on: '${{ matrix.sys.runner }}'
     steps:
@@ -140,16 +140,6 @@ jobs:
         with:
           subject-path: |
             ${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip
-      - if: "github.ref_type == 'tag' && matrix.build-type == 'Release'"
-        env:
-          GH_TOKEN: '${{ github.token }}'
-          WS: '${{ steps.fixed_workspace.outputs.out }}'
-        name: 'Upload to draft release'
-        run: |
-          files=("$WS"/build/scenechange-*-windows-*.zip)
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' "${files[@]}" ||
-            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
-        shell: 'bash'
     strategy:
       fail-fast: false
       matrix:

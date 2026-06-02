@@ -163,6 +163,7 @@ lvapoursynth
 lzimg
 mainpage
 mandir
+mapfile
 math
 mcst
 mdfile

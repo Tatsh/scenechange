@@ -146,6 +146,7 @@ jobs:
       - 'build-sdist'
       - 'build-wheels'
     permissions:
+      actions: 'read'
       contents: 'write'
       id-token: 'write'
     runs-on: 'ubuntu-latest'
@@ -165,10 +166,22 @@ jobs:
       - uses: 'pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b'
       - env:
           GH_TOKEN: '${{ github.token }}'
+          HEAD_SHA: '${{ github.sha }}'
+        name: 'Download the Windows CPack zips from the CMake run'
+        run: |
+          run_id=$(gh run list --workflow CMake --commit "$HEAD_SHA" \
+            --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
+          mkdir -p cpack
+          if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
+            gh run download "$run_id" --pattern 'scenechange-Release-windows-*' --dir cpack
+          fi
+      - env:
+          GH_TOKEN: '${{ github.token }}'
         name: 'Create or update draft release'
         run: |
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl ||
-            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl --clobber
+          mapfile -t zips < <(find cpack -name '*.zip')
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl "${zips[@]}" ||
+            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl "${zips[@]}" --clobber
 name: 'Publish'
 'on':
   push:

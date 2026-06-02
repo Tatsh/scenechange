@@ -22,20 +22,6 @@ local utils = import 'utils.libsonnet';
   want_codeql: false,
   keywords: ['plugin', 'vapoursynth'],
   clang_format_args: 'native/*.c',
-  custom_project_badges: [
-    {
-      anchor: '[![PyPI - Version](https://img.shields.io/pypi/v/vapoursynth-scenechange)]',
-      href: 'https://pypi.org/project/vapoursynth-scenechange/',
-    },
-    {
-      anchor: '[![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)]',
-      href: 'https://github.com/Tatsh/scenechange/actions/workflows/tests.yml',
-    },
-    {
-      anchor: '[![Coverage Status](https://coveralls.io/repos/github/Tatsh/scenechange/badge.svg?branch=master)]',
-      href: 'https://coveralls.io/github/Tatsh/scenechange?branch=master',
-    },
-  ],
   github+: {
     workflows+: {
       release_gate_workflows: ['CMake', 'Native Tests'],

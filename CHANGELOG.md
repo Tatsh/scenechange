@@ -9,6 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Changed
+
+- Migrated both plugins from the VapourSynth API 3 header (`VapourSynth.h`) to API 4
+  (`VapourSynth4.h`). The entry point is now `VapourSynthPluginInit2`, filters are created through
+  `createVideoFilter` with explicit frame-request dependencies, frame properties are accessed via
+  the `mapGet`/`mapSet` and `getFrameProperties*` functions, and the argument and return strings
+  use the `vnode` type. VapourSynth R55 or newer is now required; API 3 is no longer supported.
+
 ## [0.3.0] - 2026-05-24
 
 ### Added

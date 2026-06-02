@@ -17,13 +17,13 @@ endif()
 
 if(NOT VAPOURSYNTH_FOUND)
   find_path(VAPOURSYNTH_INCLUDE_DIR
-            NAMES VapourSynth.h
+            NAMES VapourSynth4.h
             PATH_SUFFIXES vapoursynth)
   if(NOT VAPOURSYNTH_INCLUDE_DIR)
     message(FATAL_ERROR
       "VapourSynth headers not found. Install via your package manager "
       "(apt install vapoursynth, brew install vapoursynth) or set "
-      "VAPOURSYNTH_INCLUDE_DIR to a directory containing VapourSynth.h.")
+      "VAPOURSYNTH_INCLUDE_DIR to a directory containing VapourSynth4.h.")
   endif()
   add_library(PkgConfig::VAPOURSYNTH INTERFACE IMPORTED)
   target_include_directories(PkgConfig::VAPOURSYNTH INTERFACE ${VAPOURSYNTH_INCLUDE_DIR})

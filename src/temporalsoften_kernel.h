@@ -50,7 +50,7 @@
 
 #include <stdint.h>
 
-#include <VapourSynth.h>
+#include <VapourSynth4.h>
 
 /**
  * @brief Apply mode-2 temporal soften to an 8-bit plane.

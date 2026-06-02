@@ -4,9 +4,10 @@ jobs:
       contents: 'write'
     runs-on: '${{ matrix.backend.runner }}'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
@@ -36,11 +37,11 @@ jobs:
           --exclude build
           --exclude tests
           --exclude '*/_deps/*'
-          --include '*/src/*'
+          --include '*/native/*'
           --keep-going
       - if: "matrix.build-type == 'Debug'"
         name: 'Coveralls'
-        uses: 'coverallsapp/github-action@v2'
+        uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
         with:
           file: 'coverage.lcov'
           flag-name: '${{ matrix.backend.suffix }}-${{ matrix.build-type }}'
@@ -64,10 +65,10 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Finalise Coveralls report'
-        uses: 'coverallsapp/github-action@v2'
+        uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
         with:
           parallel-finished: true
-name: 'Tests'
+name: 'Native Tests'
 'on':
   pull_request:
     branches:

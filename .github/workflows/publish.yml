@@ -1,0 +1,177 @@
+# cspell:ignore archs cibuildwheel cibw
+#
+# This workflow is intentionally hand-maintained (NOT produced by Wiswa's
+# pure-Python publisher) because the wheels bundle the compiled VapourSynth
+# plugins and must be built per platform with cibuildwheel. Wiswa regenerates a
+# single-platform publish.yml on every run; this version is committed, so after
+# a regen recover it with: git checkout -- .github/workflows/publish.yml
+jobs:
+  check:
+    permissions:
+      actions: 'read'
+      contents: 'read'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
+      - env:
+          COMMIT_SHA: '${{ github.sha }}'
+          GH_TOKEN: '${{ github.token }}'
+        id: 'check'
+        name: 'Wait for workflows'
+        run: |
+          sha="$COMMIT_SHA"
+          required_workflows=('CMake' 'Native Tests' 'Tests')
+          optional_workflows=('Prettier' 'QA' 'Spelling' 'markdownlint')
+          process_workflow() {
+            local workflow="$1" treat_missing="$2"
+            local run status conclusion
+            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]') || run=''
+            if [[ -z "$run" || "$run" == 'null' ]]; then
+              if [[ "$treat_missing" == 'pending' ]]; then
+                echo "Required workflow '$workflow' has not registered a run yet; waiting."
+                return 2
+              fi
+              echo "Optional workflow '$workflow' did not run for this commit; skipping."
+              return 0
+            fi
+            status=$(echo "$run" | jq -r '.status') || status=''
+            conclusion=$(echo "$run" | jq -r '.conclusion') || conclusion=''
+            case "$conclusion" in
+              failure|cancelled|timed_out|startup_failure|action_required)
+                echo "::error::Workflow '$workflow' ${conclusion}."
+                return 1
+                ;;
+              success|skipped|neutral)
+                return 0
+                ;;
+              *)
+                if [[ "$status" == 'completed' ]]; then
+                  echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
+                  return 1
+                fi
+                echo "Workflow '$workflow' still pending (status=${status})."
+                return 2
+                ;;
+            esac
+          }
+          for i in $(seq 1 30); do
+            all_done=true
+            for workflow in "${required_workflows[@]}"; do
+              rc=0
+              process_workflow "$workflow" pending || rc=$?
+              [[ $rc -eq 1 ]] && exit 1
+              [[ $rc -eq 2 ]] && all_done=false
+            done
+            for workflow in "${optional_workflows[@]}"; do
+              rc=0
+              process_workflow "$workflow" skip || rc=$?
+              [[ $rc -eq 1 ]] && exit 1
+              [[ $rc -eq 2 ]] && all_done=false
+            done
+            if [[ "$all_done" == 'true' ]]; then
+              echo 'All required workflows succeeded.'
+              exit 0
+            fi
+            echo "Waiting 60s for workflows to complete (attempt ${i}/30)..."
+            sleep 60
+          done
+          echo '::error::Timed out waiting for workflows.'
+          exit 1
+  build-sdist:
+    needs:
+      - 'check'
+    permissions:
+      contents: 'read'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
+      - uses: 'actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405'
+        with:
+          python-version: '3.13'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b'
+        with:
+          enable-cache: false
+      - name: 'Build sdist'
+        run: 'uv build --sdist'
+      - uses: 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
+        with:
+          name: 'sdist'
+          path: 'dist/*.tar.gz'
+  build-wheels:
+    needs:
+      - 'check'
+    permissions:
+      contents: 'read'
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
+      - uses: 'pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084'
+        env:
+          # The plugins are not Python C extensions (they are loaded at runtime
+          # by VapourSynth), so a single build per platform yields a
+          # Python-agnostic py3-none wheel; CMake downloads VapourSynth4.h.
+          CIBW_ARCHS: '${{ matrix.cibw_archs }}'
+          CIBW_BUILD: 'cp313-*'
+          CIBW_SKIP: 'pp* *-win32'
+      - uses: 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
+        with:
+          name: 'wheels-${{ matrix.os }}-${{ matrix.cibw_archs }}'
+          path: './wheelhouse/*.whl'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cibw_archs: 'x86_64'
+            os: 'ubuntu-latest'
+          - cibw_archs: 'aarch64'
+            os: 'ubuntu-24.04-arm'
+          - cibw_archs: 'x86_64'
+            os: 'macos-15-intel'
+          - cibw_archs: 'arm64'
+            os: 'macos-latest'
+          - cibw_archs: 'AMD64'
+            os: 'windows-latest'
+          - cibw_archs: 'ARM64'
+            os: 'windows-11-arm'
+  publish:
+    environment: 'release'
+    needs:
+      - 'build-sdist'
+      - 'build-wheels'
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
+      - uses: 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093'
+        with:
+          merge-multiple: true
+          path: 'dist'
+          pattern: 'wheels-*'
+      - uses: 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093'
+        with:
+          name: 'sdist'
+          path: 'dist'
+      - uses: 'pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b'
+      - env:
+          GH_TOKEN: '${{ github.token }}'
+        name: 'Create or update draft release'
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl ||
+            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl --clobber
+name: 'Publish'
+'on':
+  push:
+    tags:
+      - 'v*'
+permissions: {}

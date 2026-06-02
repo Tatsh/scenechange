@@ -1,10 +1,13 @@
 jobs:
   build-linux:
+    permissions:
+      contents: 'read'
     runs-on: '${{ matrix.arch.runner }}'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
@@ -28,7 +31,7 @@ jobs:
           --config '${{ github.workspace }}/build/CPackConfig.cmake'
           -B '${{ github.workspace }}/build' --verbose
       - name: 'Upload artefacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: 'error'
           name: 'scenechange-${{ matrix.build-type }}-linux-${{ matrix.arch.suffix }}'
@@ -43,11 +46,14 @@ jobs:
             suffix: 'arm64'
         build-type: ['Debug', 'Release']
   build-macos:
+    permissions:
+      contents: 'read'
     runs-on: '${{ matrix.os.runner }}'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: 'Install dependencies'
         run: 'brew install ninja vapoursynth'
       - name: 'Configure'
@@ -63,7 +69,7 @@ jobs:
           --config '${{ github.workspace }}/build/CPackConfig.cmake'
           -B '${{ github.workspace }}/build' --verbose
       - name: 'Upload artefacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: 'error'
           name: 'scenechange-${{ matrix.build-type }}-macos-${{ matrix.os.suffix }}'
@@ -78,6 +84,10 @@ jobs:
           - runner: 'macos-15-intel'
             suffix: 'x86_64'
   build-windows:
+    permissions:
+      attestations: 'write'
+      contents: 'write'
+      id-token: 'write'
     runs-on: '${{ matrix.sys.runner }}'
     steps:
       - id: 'fixed_workspace'
@@ -85,50 +95,61 @@ jobs:
         run: >-
           echo out=$("${{ github.workspace }}" -Replace "\\","/") | Out-File
           -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: 'Fetch VapourSynth headers'
+        env:
+          WS: '${{ steps.fixed_workspace.outputs.out }}'
         shell: 'bash'
         run: |
           git clone --depth 1 --branch R72 https://github.com/vapoursynth/vapoursynth.git \
-            "${{ steps.fixed_workspace.outputs.out }}/vendor/vapoursynth"
+            "$WS/vendor/vapoursynth"
       - name: 'Configure'
+        env:
+          WS: '${{ steps.fixed_workspace.outputs.out }}'
         run: >-
           cmake -G "Visual Studio 17 2022" -A ${{ matrix.sys.cmake_arch }}
-          -B '${{ steps.fixed_workspace.outputs.out }}/build'
-          --install-prefix '${{ steps.fixed_workspace.outputs.out }}/build/prefix'
+          -B "$env:WS/build"
+          --install-prefix "$env:WS/build/prefix"
           -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
-          -DVAPOURSYNTH_INCLUDE_DIR='${{ steps.fixed_workspace.outputs.out }}/vendor/vapoursynth/include'
+          -DVAPOURSYNTH_INCLUDE_DIR="$env:WS/vendor/vapoursynth/include"
       - name: 'Build'
+        env:
+          WS: '${{ steps.fixed_workspace.outputs.out }}'
         run: >-
-          cmake --build '${{ steps.fixed_workspace.outputs.out }}/build'
+          cmake --build "$env:WS/build"
           --config '${{ matrix.build-type }}' --verbose
       - name: 'Package'
+        env:
+          WS: '${{ steps.fixed_workspace.outputs.out }}'
         run: >-
           cpack -C '${{ matrix.build-type }}'
-          --config '${{ steps.fixed_workspace.outputs.out }}/build/CPackConfig.cmake'
-          -B '${{ steps.fixed_workspace.outputs.out }}/build' --verbose
+          --config "$env:WS/build/CPackConfig.cmake"
+          -B "$env:WS/build" --verbose
       - name: 'Upload artefacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: 'error'
           name: 'scenechange-${{ matrix.build-type }}-windows-${{ matrix.sys.arch }}'
           path: '${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip'
       - if: "matrix.build-type == 'Release'"
         name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32'
         with:
           subject-path: |
             ${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip
       - if: "github.ref_type == 'tag' && matrix.build-type == 'Release'"
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          WS: '${{ steps.fixed_workspace.outputs.out }}'
         name: 'Upload to draft release'
-        uses: 'softprops/action-gh-release@v3'
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            ${{ steps.fixed_workspace.outputs.out }}/build/scenechange-*-windows-*.zip
+        run: |
+          files=("$WS"/build/scenechange-*-windows-*.zip)
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' "${files[@]}" ||
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+        shell: 'bash'
     strategy:
       fail-fast: false
       matrix:
@@ -150,7 +171,4 @@ name: 'CMake'
       - 'master'
     tags:
       - 'v*.*.*'
-permissions:
-  attestations: 'write'
-  contents: 'write'
-  id-token: 'write'
+permissions: {}

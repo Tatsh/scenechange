@@ -4,7 +4,7 @@
       "cStandard": "gnu23",
       "compilerPath": "/usr/bin/gcc",
       "cppStandard": "gnu++23",
-      "includePath": ["${workspaceFolder}/src/**"],
+      "includePath": ["${workspaceFolder}/native/**"],
       "name": "Linux"
     }
   ],

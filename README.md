@@ -2,16 +2,25 @@
 
 <!-- WISWA-GENERATED-README:START -->
 
-[![C](https://img.shields.io/badge/C-00599C?logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
+[![Python versions](https://img.shields.io/pypi/pyversions/vapoursynth-scenechange.svg?color=blue&logo=python&logoColor=white)](https://www.python.org/)
+[![PyPI - Version](https://img.shields.io/pypi/v/scenechange)](https://pypi.org/project/vapoursynth-scenechange/)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/tags)
 [![License](https://img.shields.io/github/license/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt)
 [![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.3.0/master)](https://github.com/Tatsh/scenechange/compare/v0.3.0...master)
+[![QA](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml)
+[![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Tatsh/scenechange/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/scenechange?branch=master)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
-[![pages-build-deployment](https://github.com/Tatsh/scenechange/actions/workflows/pages/pages-build-deployment/badge.svg)](https://tatsh.github.io/scenechange/)
+[![Documentation Status](https://readthedocs.org/projects/scenechange/badge/?version=latest)](https://scenechange.readthedocs.org/?badge=latest)
+[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![uv](https://img.shields.io/badge/uv-261230?logo=astral)](https://docs.astral.sh/uv/)
+[![pytest](https://img.shields.io/badge/pytest-zz?logo=Pytest&labelColor=black&color=black)](https://docs.pytest.org/en/stable/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Downloads](https://static.pepy.tech/badge/scenechange/month)](https://pepy.tech/project/scenechange)
 [![Stargazers](https://img.shields.io/github/stars/Tatsh/scenechange?logo=github&style=flat)](https://github.com/Tatsh/scenechange/stargazers)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
-[![CMake](https://img.shields.io/badge/CMake-6E6E6E?logo=cmake)](https://cmake.org/)
 [![Prettier](https://img.shields.io/badge/Prettier-black?logo=prettier)](https://prettier.io/)
+[![PyPI - Version](https://img.shields.io/pypi/v/vapoursynth-scenechange)](https://pypi.org/project/vapoursynth-scenechange/)
 [![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Tatsh/scenechange/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/scenechange?branch=master)
 
@@ -33,8 +42,8 @@ The project builds two VapourSynth plugins:
 - `temporalsoften2` (namespace `focus2`) is a temporal-averaging denoiser that honours those scene
   change properties.
 
-A small Python wrapper (`temporalsoften2.py`) is also included; it stitches the two plugins
-together so callers only need a single function call.
+The `vapoursynth-scenechange` Python package bundles both compiled plugins together with a small
+wrapper (`scenechange.TemporalSoften`) that stitches them into a single function call.
 
 ## Building and installing
 
@@ -59,9 +68,20 @@ By default the plugins install to the directory reported by
 `${CMAKE_INSTALL_FULL_LIBDIR}/vapoursynth` when the pkg-config variable is unset. Override the
 location with `-DVAPOURSYNTH_PLUGINS_DIR=/path/to/plugins` at configure time.
 
-The Python helper `temporalsoften2.py` is shipped in the source tree but is intentionally not
-installed by CMake. Copy it manually into a directory on your `PYTHONPATH` (for example
-`Python3.x/Lib/site-packages` on Windows) if you want the wrapper.
+### Python package
+
+Prebuilt wheels that bundle both plugins are published to PyPI, so most users do not need to build
+anything from source:
+
+```shell
+pip install vapoursynth-scenechange
+```
+
+The wheel installs the compiled plugins as package data (for example
+`site-packages/scenechange/libscenechange.so`) alongside the `scenechange` Python module, and
+declares `vapoursynth` as a dependency. Building the plugins from source with CMake (above) is only
+needed for development or for platforms without a published wheel. See
+[Python wrapper](#python-wrapper) for usage.
 
 ## Usage
 
@@ -137,14 +157,16 @@ clip = core.focus2.TemporalSoften2(clip)
 
 ### Python wrapper
 
-The `TemporalSoften` class in `temporalsoften2.py` collapses the boilerplate above into a single
-call and handles the RGB property-copy step automatically:
+The `TemporalSoften` class in the `scenechange` package collapses the boilerplate above into a
+single call and handles the RGB property-copy step automatically. Its static `load_plugins` method
+loads the bundled plugins into the core, so no manual `LoadPlugin` paths are required:
 
 ```python
-from temporalsoften2 import TemporalSoften
+import vapoursynth as vs
+from scenechange import TemporalSoften
 
-core.std.LoadPlugin('/path/to/libscenechange.so')
-core.std.LoadPlugin('/path/to/libtemporalsoften2.so')
+core = vs.core
+TemporalSoften.load_plugins(core)
 clip = TemporalSoften(core).soften(clip, luma_threshold=4)
 ```
 

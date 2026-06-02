@@ -1,8 +1,11 @@
 jobs:
   publish-release:
+    environment: 'release'
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
       - env:
           GH_TOKEN: '${{ github.token }}'
           HEAD_SHA: '${{ github.event.workflow_run.head_sha }}'
@@ -49,44 +52,65 @@ jobs:
         run: |
           tag="$TAG"
           sha="$HEAD_SHA"
+          required_workflows=('CMake' 'Native Tests' 'Publish')
+          optional_workflows=('Prettier' 'QA' 'Spelling' 'Tests' 'markdownlint')
           all_success=true
-          for workflow in CMake CodeQL Prettier Spelling Tests clang-format markdownlint; do
-            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]')
+          process_workflow() {
+            local workflow="$1" treat_missing="$2"
+            local run status conclusion
+            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]') || run=''
             if [[ -z "$run" || "$run" == 'null' ]]; then
-              echo "Workflow '$workflow' did not run for this commit; treating as optional."
-              continue
+              if [[ "$treat_missing" == 'pending' ]]; then
+                echo "Required workflow '$workflow' has not registered a run yet."
+                return 2
+              fi
+              echo "Optional workflow '$workflow' did not run for this commit; skipping."
+              return 0
             fi
-            status=$(echo "$run" | jq -r '.status')
-            conclusion=$(echo "$run" | jq -r '.conclusion')
+            status=$(echo "$run" | jq -r '.status') || status=''
+            conclusion=$(echo "$run" | jq -r '.conclusion') || conclusion=''
             case "$conclusion" in
               failure|cancelled|timed_out|startup_failure|action_required)
                 echo "::error::Workflow '$workflow' ${conclusion}."
-                exit 1
+                return 1
                 ;;
               success|skipped|neutral)
+                return 0
                 ;;
               *)
                 if [[ "$status" == 'completed' ]]; then
                   echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
-                  exit 1
+                  return 1
                 fi
                 echo "Workflow '$workflow' still pending (status=${status})."
-                all_success=false
+                return 2
                 ;;
             esac
+          }
+          for workflow in "${required_workflows[@]}"; do
+            rc=0
+            process_workflow "$workflow" pending || rc=$?
+            [[ $rc -eq 1 ]] && exit 1
+            [[ $rc -eq 2 ]] && all_success=false
+          done
+          for workflow in "${optional_workflows[@]}"; do
+            rc=0
+            process_workflow "$workflow" skip || rc=$?
+            [[ $rc -eq 1 ]] && exit 1
+            [[ $rc -eq 2 ]] && all_success=false
           done
           if [[ "$all_success" != 'true' ]]; then
-            echo 'Not all workflows have completed yet.'
+            echo 'Not all required workflows have completed yet.'
             exit 0
           fi
           echo "All required workflows succeeded for ${tag}."
-          echo "tag=${tag}" >> "$GITHUB_ENV"
           echo "ready=true" >> "$GITHUB_OUTPUT"
       - env:
           GH_TOKEN: '${{ github.token }}'
+          TAG: '${{ steps.guard.outputs.tag }}'
         if: "steps.check.outputs.ready == 'true'"
         name: 'Publish release'
-        run: 'gh release edit "$tag" --draft=false'
+        run: 'gh release edit "$TAG" --draft=false'
       - env:
           GH_TOKEN: '${{ github.token }}'
           REPO: '${{ github.repository }}'
@@ -103,8 +127,7 @@ jobs:
             local id="$1"
             local step_conclusion
             step_conclusion=$(gh api "repos/${REPO}/actions/runs/${id}/jobs" \
-              --jq '[.jobs[].steps[] | select(.name == "Publish release")][0].conclusion' \
-              2>/dev/null || echo '')
+              --jq '[.jobs[].steps[] | select(.name == "Publish release")][0].conclusion' 2>/dev/null || echo '')
             [[ "$step_conclusion" == 'skipped' ]]
           }
           gh run list --repo "$REPO" --workflow 'Release' \
@@ -141,11 +164,12 @@ name: 'Release'
       - 'completed'
     workflows:
       - 'CMake'
-      - 'CodeQL'
+      - 'Native Tests'
       - 'Prettier'
+      - 'Publish'
+      - 'QA'
       - 'Spelling'
       - 'Tests'
-      - 'clang-format'
       - 'markdownlint'
 permissions:
   actions: 'write'

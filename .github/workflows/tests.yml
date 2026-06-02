@@ -1,0 +1,66 @@
+jobs:
+  test:
+    env:
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
+        with:
+          persist-credentials: false
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b'
+      - name: 'Set up Python ${{ matrix.python-version }}'
+        uses: 'actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405'
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: 'Install dependencies (uv)'
+        run: 'uv sync --group tests --all-extras'
+      - name: 'Install pytest-action dependencies'
+        run: 'uv pip install pytest-md pytest-emoji'
+      - name: 'Install dependencies (Yarn)'
+        run: 'yarn'
+      - name: 'Run tests'
+        uses: 'pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507'
+        with:
+          click-to-expand: true
+          custom-arguments: '--cov . --cov-branch --cov-report term-missing:skip-covered --cov-report xml'
+          custom-pytest: 'yarn test'
+          emoji: true
+          job-summary: true
+          report-title: 'Test Report'
+          verbose: true
+      - if: "github.event_name != 'pull_request'"
+        name: 'Coverage'
+        uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
+        with:
+          file: 'coverage.xml'
+    strategy:
+      matrix:
+        python-version:
+          - '3.12'
+          - '3.13'
+          - '3.14'
+name: 'Tests'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+    paths:
+      - 'scenechange/**'
+      - '.github/workflows/tests.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
+      - 'tests/**'
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'scenechange/**'
+      - '.github/workflows/tests.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
+      - 'tests/**'
+permissions:
+  contents: 'read'

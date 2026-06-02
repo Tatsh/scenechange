@@ -10,6 +10,7 @@ asyncio
 atexit
 autoclass
 autodoc
+autoinstall
 autouse
 avisynth's
 bascom

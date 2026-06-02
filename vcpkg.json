@@ -1,20 +1,16 @@
 {
-  "dependencies": [
-
-  ],
+  "dependencies": [],
   "description": "Scene change detection plugin for VapourSynth.",
   "documentation": "https://scenechange.readthedocs.org",
   "features": {
     "tests": {
-      "description": "Build the unit-test suite.",
-      "dependencies": ["cmocka"]
+      "dependencies": ["cmocka"],
+      "description": "Build the unit-test suite."
     }
   },
   "homepage": "https://tatsh.github.io/scenechange/",
   "license": "LGPL-2.1-or-later",
-  "maintainers": [
-    "Andrew Udvare <audvare@gmail.com>"
-  ],
+  "maintainers": ["Andrew Udvare <audvare@gmail.com>"],
   "name": "scenechange",
   "version": "0.3.0"
 }

@@ -87,21 +87,29 @@ elseif(APPLE)
     "LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_BINARY_DIR}/temporalsoften2.plist")
 endif()
 
-if(MSVC)
-  # MSVC builds ship as a flat ZIP that users extract into their VapourSynth
-  # plugin directory. MSYS2/MinGW Windows builds install into an FHS-like
-  # prefix instead, so they follow the same layout as Linux and macOS.
-  set(SCENECHANGE_PLUGIN_DEST ".")
-  set(SCENECHANGE_DOC_DEST ".")
+if(BUILD_PYTHON_PACKAGE)
+  # Python wheel build: bundle the plugins as package data so they land in
+  # site-packages/scenechange/ and can be located through importlib.resources
+  # by scenechange.TemporalSoften.load_plugins().
+  install(TARGETS scenechange temporalsoften2
+          LIBRARY DESTINATION scenechange
+          RUNTIME DESTINATION scenechange)
 else()
-  set(SCENECHANGE_PLUGIN_DEST "${VAPOURSYNTH_PLUGINS_DIR}")
-  set(SCENECHANGE_DOC_DEST "${CMAKE_INSTALL_DOCDIR}")
+  if(MSVC)
+    # MSVC builds ship as a flat ZIP that users extract into their VapourSynth
+    # plugin directory. MSYS2/MinGW Windows builds install into an FHS-like
+    # prefix instead, so they follow the same layout as Linux and macOS.
+    set(SCENECHANGE_PLUGIN_DEST ".")
+    set(SCENECHANGE_DOC_DEST ".")
+  else()
+    set(SCENECHANGE_PLUGIN_DEST "${VAPOURSYNTH_PLUGINS_DIR}")
+    set(SCENECHANGE_DOC_DEST "${CMAKE_INSTALL_DOCDIR}")
+  endif()
+
+  install(TARGETS scenechange temporalsoften2
+          LIBRARY DESTINATION "${SCENECHANGE_PLUGIN_DEST}"
+          RUNTIME DESTINATION "${SCENECHANGE_PLUGIN_DEST}")
+
+  install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" "${CMAKE_SOURCE_DIR}/README.md"
+          DESTINATION "${SCENECHANGE_DOC_DEST}")
 endif()
-
-install(TARGETS scenechange temporalsoften2
-        LIBRARY DESTINATION "${SCENECHANGE_PLUGIN_DEST}"
-        RUNTIME DESTINATION "${SCENECHANGE_PLUGIN_DEST}")
-
-install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" "${CMAKE_SOURCE_DIR}/README.md"
-              "${CMAKE_SOURCE_DIR}/temporalsoften2.py"
-        DESTINATION "${SCENECHANGE_DOC_DEST}")

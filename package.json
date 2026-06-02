@@ -1,8 +1,8 @@
 {
   "_wiswa": {
-    "commandLine": "wiswa",
-    "lastRun": "2026-05-24T05:51:41Z",
-    "version": "566ff22"
+    "commandLine": "wiswa -d",
+    "lastRun": "2026-06-02T17:20:20Z",
+    "version": "84d3127"
   },
   "contributors": ["Andrew Udvare <audvare@gmail.com>", "Oka Motofumi <chikuzen.mo@gmail.com>"],
   "cspell": {
@@ -50,7 +50,8 @@
     "prettier": "^3.8.3",
     "prettier-plugin-ini": "^1.3.0",
     "prettier-plugin-sort-json": "^4.2.0",
-    "prettier-plugin-toml": "^2.0.6"
+    "prettier-plugin-toml": "^2.0.6",
+    "pyright": "^1.1.410"
   },
   "files": ["LICENSE.txt", "README.md"],
   "homepage": "https://tatsh.github.io/scenechange/",
@@ -77,7 +78,7 @@
     "showFound": true
   },
   "name": "scenechange",
-  "packageManager": "yarn@4.15.0",
+  "packageManager": "yarn@4.16.0",
   "prettier": {
     "endOfLine": "lf",
     "iniSpaceAroundEquals": true,
@@ -87,12 +88,6 @@
         "files": ["*.json.dist", "package.json"],
         "options": {
           "parser": "json"
-        }
-      },
-      {
-        "files": [".clang-format"],
-        "options": {
-          "parser": "yaml"
         }
       }
     ],
@@ -111,12 +106,19 @@
     "url": "git+https://github.com/Tatsh/scenechange.git"
   },
   "scripts": {
-    "build": "cmake --preset=default -DBUILD_DOCS=ON && cmake --build build",
-    "check-formatting": "clang-format --dry-run src/*.c && prettier --check . && markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2",
-    "check-spelling": "cspell --no-progress .",
+    "check-formatting": "yarn prettier --check --ignore-unknown . && yarn markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 && uv run ruff format --check .",
+    "check-spelling": "cspell --no-progress",
     "dict:update": "rm -f .vscode/dictionary.txt && cspell lint --no-progress --no-summary --unique --words-only | tr '[:upper:]' '[:lower:]' | sort -u > .vscode/dictionary.txt",
-    "format": "clang-format -i src/*.c && prettier --write . && markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 --fix",
-    "qa": "yarn check-spelling && yarn check-formatting"
+    "format": "yarn prettier --write --ignore-unknown . && yarn markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 --fix && uv run ruff format .",
+    "gen-docs": "uv run sphinx-build --fresh-env --fail-on-warning --builder html --doctree-dir docs/_build/doctrees --define language=en docs docs/_build/html",
+    "mypy": "uv run mypy",
+    "qa": "yarn mypy . && yarn pyright && uv run ty check && yarn ruff . && yarn check-spelling && yarn check-formatting",
+    "regen": "uv run wiswa",
+    "ruff": "uv run ruff check",
+    "ruff:fix": "uv run ruff check --fix",
+    "test": "uv run pytest",
+    "test:cov": "yarn test --cov . --cov-branch --cov-report html --cov-report term-missing:skip-covered",
+    "ty": "uv run ty check"
   },
   "version": "0.3.0"
 }

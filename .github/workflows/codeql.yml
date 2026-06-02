@@ -1,3 +1,6 @@
+# This workflow is hand-maintained to analyse both C and Python. Wiswa would
+# generate a single-language workflow (or remove it, as want_codeql is false),
+# so after a regen restore it with: git checkout -- .github/workflows/codeql.yml
 env:
   CODEQL_EXTRACTOR_CPP_AUTOINSTALL_DEPENDENCIES: 'false'
 jobs:
@@ -10,36 +13,46 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout repository'
-        uses: 'actions/checkout@v6'
+        uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10'
         with:
           fetch-depth: 0
-      - name: 'Install dependencies'
+          persist-credentials: false
+      - if: "matrix.language == 'c-cpp'"
+        name: 'Install dependencies'
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
-      - name: 'Fetch VapourSynth headers'
+      - if: "matrix.language == 'c-cpp'"
+        name: 'Fetch VapourSynth headers'
         run: >-
           git clone --depth 1 --branch R72
           https://github.com/vapoursynth/vapoursynth.git
           '${{ github.workspace }}/vendor/vapoursynth'
       - name: 'Initialize CodeQL'
-        uses: 'github/codeql-action/init@v4'
+        uses: 'github/codeql-action/init@87557b9c84dde89fdd9b10e88954ac2f4248e463'
         with:
+          build-mode: '${{ matrix.build-mode }}'
           languages: '${{ matrix.language }}'
-      - name: 'Configure'
+      - if: "matrix.language == 'c-cpp'"
+        name: 'Configure'
         run: >-
           cmake -G Ninja -B '${{ github.workspace }}/build'
           -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
-      - name: 'Build'
+      - if: "matrix.language == 'c-cpp'"
+        name: 'Build'
         run: 'cmake --build ${{ github.workspace }}/build --verbose'
       - name: 'Perform CodeQL Analysis'
-        uses: 'github/codeql-action/analyze@v4'
+        uses: 'github/codeql-action/analyze@87557b9c84dde89fdd9b10e88954ac2f4248e463'
         with:
           category: '/language:${{ matrix.language }}'
     strategy:
       fail-fast: false
       matrix:
-        language: ['cpp']
+        include:
+          - build-mode: 'manual'
+            language: 'c-cpp'
+          - build-mode: 'none'
+            language: 'python'
 name: 'CodeQL'
 'on':
   pull_request:
@@ -50,3 +63,4 @@ name: 'CodeQL'
       - 'master'
   schedule:
     - cron: '42 10 * * 4'
+permissions: {}

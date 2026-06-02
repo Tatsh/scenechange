@@ -1,0 +1,224 @@
+[build-system]
+build-backend = "scikit_build_core.build"
+requires = ["scikit-build-core>=0.12.2"]
+
+[dependency-groups]
+dev = ["commitizen>=4.16.2", "cz-path>=0.0.7", "mypy>=2.1.0", "ruff==0.15.14", "ty>=0.0.39"]
+docs = [
+  "autodoc-pydantic>=2.2.0",
+  "doc8>=2.0.0",
+  "enum-tools[sphinx]>=0.13.0",
+  "esbonio>=2.0.0",
+  "restructuredtext-lint>=2.0.2",
+  "sphinx-datatables>=1.0.0",
+  "sphinx-immaterial>=0.13.9",
+  "sphinx>=9.1.0; python_version >= \"3.13\"",
+]
+tests = [
+  "coveralls>=4.1.0",
+  "mock>=5.2.0",
+  "pytest-cov>=7.1.0",
+  "pytest-mock>=3.15.1",
+  "pytest>=9.0.3",
+]
+
+[project]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Plugins",
+  "Intended Audience :: Developers",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: C",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Multimedia :: Video",
+  "Typing :: Typed",
+]
+dependencies = ["vapoursynth>=75"]
+description = "Scene change detection plugin for VapourSynth."
+keywords = ["plugin", "vapoursynth"]
+license = "LGPL-2.1-or-later"
+name = "vapoursynth-scenechange"
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+version = "0.3.0"
+
+[[project.authors]]
+email = "audvare@gmail.com"
+name = "Andrew Udvare"
+
+[[project.authors]]
+email = "chikuzen.mo@gmail.com"
+name = "Oka Motofumi"
+
+[project.urls]
+Issues = "https://github.com/Tatsh/scenechange/issues"
+documentation = "https://scenechange.readthedocs.org"
+homepage = "https://tatsh.github.io/scenechange/"
+repository = "https://github.com/Tatsh/scenechange"
+
+[tool.commitizen]
+name = "cz_path"
+remove_path_prefixes = ["include", "native", "scenechange"]
+tag_format = "v$version"
+version_files = [
+  ".wiswa.jsonnet",
+  "CITATION.cff",
+  "README.md",
+  "docs/badges.rst",
+  "docs/index.rst",
+  "package.json",
+  "scenechange/__init__.py",
+  "CMakeLists.txt",
+  "native/scenechange.c",
+  "native/temporalsoften.c",
+  "vcpkg.json",
+]
+version_provider = "pep621"
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+show_missing = true
+
+[tool.coverage.run]
+branch = true
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+
+[tool.doc8]
+max-line-length = 100
+
+[tool.mypy]
+cache_dir = "~/.cache/mypy"
+explicit_package_bases = true
+platform = "linux"
+python_version = "3.12"
+show_column_numbers = true
+strict = true
+strict_optional = true
+warn_unreachable = true
+
+[tool.pyright]
+deprecateTypingAliases = true
+enableExperimentalFeatures = true
+exclude = [".venv", "**/node_modules", "**/__pycache__", "**/.*"]
+include = ["./scenechange", "./tests"]
+pythonPlatform = "Linux"
+pythonVersion = "3.12"
+reportCallInDefaultInitializer = "warning"
+reportImplicitOverride = "warning"
+reportImportCycles = "error"
+reportMissingModuleSource = "error"
+reportPropertyTypeMismatch = "error"
+reportUnnecessaryTypeIgnoreComment = "none"
+typeCheckingMode = "off"
+venv = ".venv"
+venvPath = "."
+
+[tool.pytest.ini_options]
+mock_use_standalone_module = true
+norecursedirs = ["node_modules"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["tests"]
+
+[tool.ruff]
+cache-dir = "~/.cache/ruff"
+force-exclude = true
+line-length = 100
+namespace-packages = ["docs", "tests"]
+target-version = "py312"
+unsafe-fixes = true
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+preview = true
+quote-style = "single"
+
+[tool.ruff.lint]
+extend-select = ["ALL"]
+ignore = [
+  "ANN401",
+  "COM812",
+  "CPY001",
+  "D203",
+  "D204",
+  "D212",
+  "N818",
+  "Q000",
+  "Q003",
+  "S404",
+  "S603",
+  "TD002",
+]
+preview = true
+
+[tool.ruff.lint.flake8-builtins]
+allowed-modules = ["types", "typing"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "double"
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+combine-as-imports = true
+from-first = true
+required-imports = ["from __future__ import annotations"]
+section-order = ["future", "standard-library", "third-party", "local-folder"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["test_*"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.pylint]
+max-args = 20
+max-branches = 20
+max-locals = 20
+max-positional-args = 15
+max-public-methods = 30
+max-returns = 10
+max-statements = 100
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+
+[tool.scikit-build.cmake]
+version = ">=3.28"
+
+[tool.scikit-build.cmake.define]
+BUILD_DOCS = "OFF"
+BUILD_PYTHON_PACKAGE = "ON"
+BUILD_TESTS = "OFF"
+
+[tool.scikit-build.sdist]
+exclude = ["**"]
+include = [
+  "/CMakeLists.txt",
+  "/LICENSE.txt",
+  "/README.md",
+  "/pyproject.toml",
+  "/scenechange/**/*.py",
+  "/scenechange/py.typed",
+  "/native/**/*.c",
+  "/native/**/*.h",
+  "/native/CMakeLists.txt",
+]
+
+[tool.scikit-build.wheel]
+exclude = ["**/*.c", "**/*.h", "**/CMakeLists.txt"]
+packages = ["scenechange"]
+py-api = "py3"
+
+[tool.uv]
+default-groups = "all"
+exclude-newer = "1 week"

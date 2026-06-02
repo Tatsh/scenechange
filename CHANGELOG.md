@@ -9,8 +9,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Added
+
+- `vapoursynth-scenechange` Python package: prebuilt wheels bundle both compiled plugins as package
+  data (for example `site-packages/scenechange/libscenechange.so`) for the same platforms as the
+  binary releases. The `scenechange.TemporalSoften` wrapper exposes a static `load_plugins` method
+  that loads the bundled plugins into a core via `importlib.resources`.
+
 ### Changed
 
+- Moved the native C sources from `src/` into `native/`.
 - Migrated both plugins from the VapourSynth API 3 header (`VapourSynth.h`) to API 4
   (`VapourSynth4.h`). The entry point is now `VapourSynthPluginInit2`, filters are created through
   `createVideoFilter` with explicit frame-request dependencies, frame properties are accessed via

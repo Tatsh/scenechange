@@ -1,13 +1,6 @@
----
-name: release
-description: Drives the release process for the scenechange project: changelog, version bump, pre-commit checks, push, and GitHub release notes. Use when the user asks to cut a release.
----
+# Release
 
-# Release Agent
-
-Prepares and publishes a new release for the scenechange project.
-
-## Role
+Prepare and publish a new release for the scenechange project.
 
 You manage the release process: update the changelog, determine the version bump, run pre-commit
 checks, bump the version, and push, and align GitHub release notes
@@ -80,6 +73,8 @@ with the changelog.
    - **Snapcraft** (`snap/snapcraft.yaml` or top-level `snapcraft.yaml`) if present: every
      version reference and every part's `source-tag:` equal `NEW` / `vNEW`. `source:` points at
      the remote repository, never a local path. Same `version_files` rule for cz.
+
+1. **Run `uv lock`** to update `uv.lock` with the new version.
 
 1. **Commit the version bump outside the sandbox.** Stage all changed files and commit with
    `git commit -S -s -m 'bump: vOLD → vNEW'` (replace

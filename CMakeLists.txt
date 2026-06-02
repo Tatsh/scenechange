@@ -15,15 +15,44 @@ if(PkgConfig_FOUND)
   pkg_check_modules(VAPOURSYNTH IMPORTED_TARGET vapoursynth)
 endif()
 
+option(SCENECHANGE_FETCH_VAPOURSYNTH_HEADERS
+       "Download VapourSynth4.h at configure time when no headers are found (used for wheel builds)."
+       ON)
+set(SCENECHANGE_VAPOURSYNTH_HEADERS_REF "R72"
+    CACHE STRING "Git ref of the VapourSynth repository to fetch VapourSynth4.h from.")
+
 if(NOT VAPOURSYNTH_FOUND)
   find_path(VAPOURSYNTH_INCLUDE_DIR
             NAMES VapourSynth4.h
             PATH_SUFFIXES vapoursynth)
+  if(NOT VAPOURSYNTH_INCLUDE_DIR AND SCENECHANGE_FETCH_VAPOURSYNTH_HEADERS)
+    # VapourSynth4.h only depends on stdint.h and stddef.h, so fetching this
+    # single header is enough to compile the plugins. The VapourSynth runtime is
+    # provided by the host process at load time, so no library is linked. This
+    # path is used by the Python wheel builds, where no system VapourSynth is
+    # installed.
+    set(_vs_headers_dir "${CMAKE_BINARY_DIR}/vapoursynth-headers")
+    message(STATUS
+            "VapourSynth headers not found; downloading VapourSynth4.h "
+            "(${SCENECHANGE_VAPOURSYNTH_HEADERS_REF}).")
+    file(DOWNLOAD
+         "https://raw.githubusercontent.com/vapoursynth/vapoursynth/${SCENECHANGE_VAPOURSYNTH_HEADERS_REF}/include/VapourSynth4.h"
+         "${_vs_headers_dir}/VapourSynth4.h"
+         STATUS _vs_download_status
+         TLS_VERIFY ON)
+    list(GET _vs_download_status 0 _vs_download_code)
+    if(NOT _vs_download_code EQUAL 0)
+      list(GET _vs_download_status 1 _vs_download_message)
+      message(FATAL_ERROR "Failed to download VapourSynth4.h: ${_vs_download_message}.")
+    endif()
+    set(VAPOURSYNTH_INCLUDE_DIR "${_vs_headers_dir}" CACHE PATH "VapourSynth include directory." FORCE)
+  endif()
   if(NOT VAPOURSYNTH_INCLUDE_DIR)
     message(FATAL_ERROR
       "VapourSynth headers not found. Install via your package manager "
-      "(apt install vapoursynth, brew install vapoursynth) or set "
-      "VAPOURSYNTH_INCLUDE_DIR to a directory containing VapourSynth4.h.")
+      "(apt install vapoursynth, brew install vapoursynth), set "
+      "VAPOURSYNTH_INCLUDE_DIR to a directory containing VapourSynth4.h, or enable "
+      "the SCENECHANGE_FETCH_VAPOURSYNTH_HEADERS option.")
   endif()
   add_library(PkgConfig::VAPOURSYNTH INTERFACE IMPORTED)
   target_include_directories(PkgConfig::VAPOURSYNTH INTERFACE ${VAPOURSYNTH_INCLUDE_DIR})
@@ -37,6 +66,15 @@ option(BUILD_DOCS "Build documentation." OFF)
 option(INSTALL_DOCS "Install documentation." OFF)
 option(BUILD_TESTS "Build the unit-test suite under tests/." OFF)
 option(SCENECHANGE_COVERAGE "Enable code-coverage instrumentation (GCC/Clang only)." OFF)
+option(BUILD_PYTHON_PACKAGE
+       "Install the plugins into the scenechange Python package (for wheel builds)." OFF)
+
+# scikit-build-core defines SKBUILD when building a wheel; in that case the
+# plugins are bundled into the Python package rather than installed to the
+# VapourSynth plugins directory.
+if(SKBUILD)
+  set(BUILD_PYTHON_PACKAGE ON)
+endif()
 
 if(SCENECHANGE_COVERAGE AND NOT MSVC)
   add_compile_options(--coverage -O0 -g)
@@ -49,7 +87,7 @@ if(BUILD_DOCS)
   set(DOXYGEN_MARKDOWN_ID_STYLE GITHUB)
   set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
   find_package(Doxygen REQUIRED COMPONENTS dot)
-  doxygen_add_docs(docs README.md src ALL)
+  doxygen_add_docs(docs README.md native ALL)
   if(INSTALL_DOCS)
     install(
       DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html
@@ -57,7 +95,7 @@ if(BUILD_DOCS)
   endif()
 endif()
 
-add_subdirectory(src)
+add_subdirectory(native)
 
 if(BUILD_TESTS)
   enable_testing()
@@ -66,6 +104,7 @@ endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
+if(NOT BUILD_PYTHON_PACKAGE)
 set(CPACK_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
 set(CPACK_PACKAGE_VENDOR "Tatsh")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Scene change detection plugin for VapourSynth.")
@@ -97,3 +136,4 @@ set(CPACK_PACKAGE_FILE_NAME
     "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-${CPACK_SYSTEM_NAME}")
 
 include(CPack)
+endif()

@@ -1,0 +1,12 @@
+{
+  "configurePresets": [
+    {
+      "environment": {
+        "VCPKG_ROOT": "/home/tatsh/dev/vcpkg"
+      },
+      "inherits": "vcpkg",
+      "name": "default"
+    }
+  ],
+  "version": 2
+}

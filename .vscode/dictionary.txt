@@ -107,6 +107,7 @@ venv
 versioninfo
 vmovl
 vmull
+vnode
 vqaddq
 vqmovun
 vqsubq
@@ -114,6 +115,8 @@ vreinterpretq
 vsapi
 vshlq
 vshrn
+vspapi
+vspluginapi
 vsubq
 winver
 wiswa

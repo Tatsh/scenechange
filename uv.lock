@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-05-26T17:20:08.759670434Z"
+exclude-newer = "2026-05-26T18:28:30.464879392Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -1701,7 +1701,7 @@ wheels = [
 
 [[package]]
 name = "vapoursynth-scenechange"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "vapoursynth" },

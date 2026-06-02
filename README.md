@@ -6,7 +6,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/scenechange)](https://pypi.org/project/vapoursynth-scenechange/)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/tags)
 [![License](https://img.shields.io/github/license/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt)
-[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.3.0/master)](https://github.com/Tatsh/scenechange/compare/v0.3.0...master)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.4.0/master)](https://github.com/Tatsh/scenechange/compare/v0.4.0...master)
 [![QA](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Tatsh/scenechange/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/scenechange?branch=master)

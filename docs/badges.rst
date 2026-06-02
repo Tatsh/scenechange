@@ -16,8 +16,8 @@
       :target: https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt
       :alt: License
 
-   .. image:: https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.3.0/master
-      :target: https://github.com/Tatsh/scenechange/compare/v0.3.0...master
+   .. image:: https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.4.0/master
+      :target: https://github.com/Tatsh/scenechange/compare/v0.4.0...master
       :alt: GitHub commits since latest release (by SemVer including pre-releases)
 
    .. image:: https://github.com/Tatsh/scenechange/actions/workflows/qa.yml/badge.svg

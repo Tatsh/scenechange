@@ -5,4 +5,4 @@ from __future__ import annotations
 from scenechange.temporalsoften import TemporalSoften
 
 __all__ = ('TemporalSoften',)
-__version__ = '0.3.0'
+__version__ = '0.4.0'

@@ -12,7 +12,7 @@
 #define snprintf _snprintf
 #endif
 
-#define TEMPORALSOFTEN2_VERSION "0.3.0"
+#define TEMPORALSOFTEN2_VERSION "0.4.0"
 
 typedef struct {
     VSNode *node;

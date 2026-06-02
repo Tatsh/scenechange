@@ -9,12 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.4.0] - 2026-06-02
+
 ### Added
 
 - `vapoursynth-scenechange` Python package: prebuilt wheels bundle both compiled plugins as package
   data (for example `site-packages/scenechange/libscenechange.so`) for the same platforms as the
   binary releases. The `scenechange.TemporalSoften` wrapper exposes a static `load_plugins` method
-  that loads the bundled plugins into a core via `importlib.resources`.
+  that loads the bundled plugins into a core via `importlib.resources` (#2).
 
 ### Changed
 
@@ -70,6 +72,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 First version.
 
-[unreleased]: https://github.com/Tatsh/scenechange/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/Tatsh/scenechange/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Tatsh/scenechange/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Tatsh/scenechange/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Tatsh/scenechange/releases/tag/v0.2.0

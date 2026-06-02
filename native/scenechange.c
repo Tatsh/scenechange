@@ -31,7 +31,7 @@
 #define snprintf _snprintf
 #endif
 
-#define SCENECHANGE_PLUGIN_VERSION "0.3.0"
+#define SCENECHANGE_PLUGIN_VERSION "0.4.0"
 #define LOG_HEADER "# scd scene change detect log version 1\n"
 
 typedef struct scenechange_handler scenechange_t;

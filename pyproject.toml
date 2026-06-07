@@ -3,7 +3,7 @@ build-backend = "scikit_build_core.build"
 requires = ["scikit-build-core>=0.12.2"]
 
 [dependency-groups]
-dev = ["commitizen>=4.16.2", "cz-path>=0.0.7", "mypy>=2.1.0", "ruff==0.15.14", "ty>=0.0.39"]
+dev = ["commitizen>=4.16.2", "cz-path>=0.0.7", "mypy>=2.1.0", "ruff==0.15.15", "ty>=0.0.39"]
 docs = [
   "autodoc-pydantic>=2.2.0",
   "doc8>=2.0.0",

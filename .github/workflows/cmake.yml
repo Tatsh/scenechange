@@ -110,7 +110,7 @@ jobs:
         env:
           WS: '${{ steps.fixed_workspace.outputs.out }}'
         run: >-
-          cmake -G "Visual Studio 17 2022" -A ${{ matrix.sys.cmake_arch }}
+          cmake -A ${{ matrix.sys.cmake_arch }}
           -B "$env:WS/build"
           --install-prefix "$env:WS/build/prefix"
           -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'

@@ -1,10 +1,3 @@
-# cspell:ignore archs cibuildwheel cibw
-#
-# This workflow is intentionally hand-maintained (NOT produced by Wiswa's
-# pure-Python publisher) because the wheels bundle the compiled VapourSynth
-# plugins and must be built per platform with cibuildwheel. Wiswa regenerates a
-# single-platform publish.yml on every run; this version is committed, so after
-# a regen recover it with: git checkout -- .github/workflows/publish.yml
 jobs:
   check:
     permissions:

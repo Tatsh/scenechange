@@ -20,7 +20,7 @@ if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
         raise excinfo.value
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # noqa: RUF076
 def recover_stale_process_cwd(request: pytest.FixtureRequest) -> None:
     """
     Recover when the process cwd was removed mid-session.

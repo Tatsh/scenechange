@@ -46,14 +46,14 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.11.23'
+    rev: '0.11.25'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
       - id: 'ruff-format'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.15.18'
+    rev: 'v0.15.20'
   - hooks:
       - id: 'check-github-actions'
       - id: 'check-github-workflows'

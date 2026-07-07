@@ -6,11 +6,10 @@ from datetime import UTC, datetime
 from operator import itemgetter
 from pathlib import Path
 import sys
+import tomllib
 
-import tomlkit
-
-with (Path(__file__).parent.parent / 'pyproject.toml').open(newline='\n', encoding='utf-8') as f:
-    project_ = tomlkit.load(f).unwrap()['project']
+with (Path(__file__).parent.parent / 'pyproject.toml').open('rb') as f:
+    project_ = tomllib.load(f)['project']
     authors_list, name, version = itemgetter('authors', 'name', 'version')(project_)
 authors = [f'{d["name"]} <{d["email"]}>' for d in authors_list]
 # region Path setup

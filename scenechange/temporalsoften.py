@@ -84,7 +84,7 @@ class TemporalSoften:
                     log.debug('Skipping already-loaded plugin `%s`: %s.', name, e)
 
     @staticmethod
-    def set_props(n: int, f: Sequence[vs.VideoFrame]) -> vs.VideoFrame:  # noqa: ARG004
+    def set_props(n: int, f: Sequence[vs.VideoFrame]) -> vs.VideoFrame:  # ruff:ignore[unused-static-method-argument]
         """
         Copy scene change properties from a reference frame onto a colour frame.
 
@@ -113,7 +113,7 @@ class TemporalSoften:
         self,
         clip: vs.VideoNode,
         threshold: int = 15,
-        log: str | None = None,  # noqa: ARG002
+        log: str | None = None,  # ruff:ignore[unused-method-argument]
     ) -> vs.VideoNode:
         """
         Run scene change detection on a clip and attach the result properties.
@@ -153,8 +153,8 @@ class TemporalSoften:
         luma_threshold: int = 4,
         chroma_threshold: int = 8,
         scenechange: int = 15,
-        mode: int | None = None,  # noqa: ARG002
-        log: str | None = None,  # noqa: ARG002
+        mode: int | None = None,  # ruff:ignore[unused-method-argument]
+        log: str | None = None,  # ruff:ignore[unused-method-argument]
     ) -> vs.VideoNode:
         """
         Apply temporal soften, optionally preceded by scene change detection.

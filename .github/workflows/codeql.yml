@@ -29,7 +29,7 @@ jobs:
           https://github.com/vapoursynth/vapoursynth.git
           '${{ github.workspace }}/vendor/vapoursynth'
       - name: 'Initialize CodeQL'
-        uses: 'github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a'
+        uses: 'github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81'
         with:
           build-mode: '${{ matrix.build-mode }}'
           languages: '${{ matrix.language }}'
@@ -42,7 +42,7 @@ jobs:
         name: 'Build'
         run: 'cmake --build ${{ github.workspace }}/build --verbose'
       - name: 'Perform CodeQL Analysis'
-        uses: 'github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a'
+        uses: 'github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81'
         with:
           category: '/language:${{ matrix.language }}'
     strategy:

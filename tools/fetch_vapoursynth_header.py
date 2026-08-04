@@ -16,6 +16,11 @@ URL_TEMPLATE = (
 
 :meta hide-value:
 """
+TIMEOUT = 30
+"""Socket timeout in seconds, so a stalled network fails the build instead of hanging it.
+
+:meta hide-value:
+"""
 
 
 def main() -> int:
@@ -39,7 +44,7 @@ def main() -> int:
     args.destination.mkdir(parents=True, exist_ok=True)
     url = URL_TEMPLATE.format(ref=args.ref)
     try:
-        with urlopen(url) as response:  # ruff: ignore[suspicious-url-open-usage]
+        with urlopen(url, timeout=TIMEOUT) as response:  # ruff: ignore[suspicious-url-open-usage]
             target.write_bytes(response.read())
     except OSError as e:
         print(f'Failed to download {url}: {e}', file=sys.stderr)  # ruff: ignore[print]

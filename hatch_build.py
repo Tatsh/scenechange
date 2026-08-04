@@ -49,9 +49,7 @@ class CustomHook(BuildHookInterface[Any]):
         # they depend only on the operating system and architecture. Tag the
         # wheel accordingly instead of inferring an interpreter-specific tag,
         # which would require one wheel per Python version.
-        platform_tag = os.environ.get('SCENECHANGE_WHEEL_PLATFORM_TAG') or next(
-            tags.platform_tags()
-        )
+        platform_tag = os.environ.get('SCENECHANGE_WHEEL_PLATFORM_TAG') or self._platform_tag()
         build_data['tag'] = f'py3-none-{platform_tag}'
         meson = (sys.executable, '-m', 'mesonbuild.mesonmain')
         setup = [*meson, 'setup', str(self.source_dir), '-Dtests=disabled']
@@ -84,3 +82,24 @@ class CustomHook(BuildHookInterface[Any]):
             Path of the built wheel. Unused.
         """
         shutil.rmtree(self.target_dir.parent, ignore_errors=True)
+
+    @staticmethod
+    def _platform_tag() -> str:
+        """
+        Work out the platform tag the wheel should carry.
+
+        On macOS :py:func:`packaging.tags.platform_tags` reports the version of
+        the machine doing the build, which would tag the wheel as requiring
+        whatever the runner happens to run and hide it from everyone on an
+        older release. Honour ``MACOSX_DEPLOYMENT_TARGET``, which is what the
+        plugins are actually built against, when it is set.
+
+        Returns
+        -------
+        str
+            Platform tag, for example ``macosx_11_0_arm64``.
+        """
+        if sys.platform == 'darwin' and (target := os.environ.get('MACOSX_DEPLOYMENT_TARGET')):
+            major, _, minor = target.partition('.')
+            return next(iter(tags.mac_platforms(version=(int(major), int(minor or 0)))))
+        return next(tags.platform_tags())

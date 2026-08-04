@@ -1,0 +1,36 @@
+option(
+  'docs',
+  type: 'boolean',
+  value: false,
+  description: 'Build the Doxygen API documentation.',
+)
+option(
+  'fetch_vapoursynth_headers',
+  type: 'boolean',
+  value: true,
+  description: 'Download VapourSynth4.h at configure time when no headers are found.',
+)
+option(
+  'force_generic',
+  type: 'boolean',
+  value: false,
+  description: 'Force the generic scalar backend even on architectures that have a SIMD one.',
+)
+option(
+  'plugins_dir',
+  type: 'string',
+  value: '',
+  description: 'Install directory for the plugins. Defaults to <libdir>/vapoursynth.',
+)
+option(
+  'tests',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build the native cmocka test suite.',
+)
+option(
+  'vapoursynth_headers_ref',
+  type: 'string',
+  value: 'R72',
+  description: 'Git ref of the VapourSynth repository to fetch VapourSynth4.h from.',
+)

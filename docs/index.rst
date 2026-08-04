@@ -13,8 +13,9 @@ Installation
 
    pip install vapoursynth-scenechange
 
-The wheel bundles the compiled ``scenechange`` (namespace ``scd``) and ``temporalsoften2``
-(namespace ``focus2``) plugins as package data, so no separate plugin installation is required.
+The wheel installs the compiled ``scenechange`` (namespace ``scd``) and ``temporalsoften2``
+(namespace ``focus2``) plugins into ``<site-packages>/vapoursynth/plugins``, which VapourSynth
+autoloads. No separate plugin installation or ``LoadPlugin`` call is required.
 
 Usage
 -----
@@ -25,7 +26,6 @@ Usage
    from scenechange import TemporalSoften
 
    core = vs.core
-   TemporalSoften.load_plugins(core)
    clip = TemporalSoften(core).soften(clip, luma_threshold=4)
 
 API

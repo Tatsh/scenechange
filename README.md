@@ -47,23 +47,24 @@ wrapper (`scenechange.TemporalSoften`) that stitches them into a single function
 Requirements:
 
 - A C99 compiler (GCC, Clang, or MSVC).
-- CMake 3.28 or newer, and Ninja (or any other generator).
-- VapourSynth R55 or newer (API 4) development headers and `vapoursynth.pc` (`vapoursynth-dev` or
-  your distribution's equivalent). The plugins use `VapourSynth4.h` and are not compatible with the
-  legacy API 3.
+- Meson 1.3 or newer, and Ninja.
+- VapourSynth R55 or newer (API 4) headers. These are found via `vapoursynth.pc`, or via the
+  `vapoursynth` Python package (`vapoursynth.get_include()`), and are otherwise downloaded at
+  configure time. The plugins use `VapourSynth4.h` and are not compatible with the legacy API 3.
 
 Configure, build, and install:
 
 ```shell
-cmake -S . -B build -G Ninja
-cmake --build build
-cmake --install build
+meson setup build
+meson compile -C build
+meson install -C build
 ```
 
-By default the plugins install to the directory reported by
-`pkg-config --variable=pluginsdir vapoursynth`, falling back to
-`${CMAKE_INSTALL_FULL_LIBDIR}/vapoursynth` when the pkg-config variable is unset. Override the
-location with `-DVAPOURSYNTH_PLUGINS_DIR=/path/to/plugins` at configure time.
+By default the plugins install to `<libdir>/vapoursynth`. Override the location with
+`-Dplugins_dir=/path/to/plugins` at configure time. Other options are `-Dtests=enabled` (build the
+cmocka test suite), `-Dforce_generic=true` (use the scalar kernel on SIMD-capable hosts),
+`-Ddocs=true` (build the Doxygen API documentation), and `-Dfetch_vapoursynth_headers=false`
+(never download `VapourSynth4.h`).
 
 ### Python package
 
@@ -74,10 +75,12 @@ anything from source:
 pip install vapoursynth-scenechange
 ```
 
-The wheel installs the compiled plugins as package data (for example
-`site-packages/scenechange/libscenechange.so`) alongside the `scenechange` Python module, and
-declares `vapoursynth` as a dependency. Building the plugins from source with CMake (above) is only
-needed for development or for platforms without a published wheel. See
+Following the [VapourSynth packaging conventions](https://vapoursynth.com/doc/packaging.html), the
+wheel installs the compiled plugins into `<site-packages>/vapoursynth/plugins`, which VapourSynth
+autoloads. Nothing needs to be imported or loaded to make `scd` and `focus2` available. The
+`scenechange` Python module is installed alongside them and declares `vapoursynth` as a dependency.
+Building the plugins from source with Meson (above) is only needed for development or for platforms
+without a published wheel. See
 [Python wrapper](#python-wrapper) for usage.
 
 ## Usage
@@ -124,14 +127,13 @@ clip = core.focus2.TemporalSoften2(clip, radius, luma_threshold, chroma_threshol
 - `scenechange`: when 0 the `_SceneChange*` frame properties are ignored. Default is 1.
 - `mode`: 2.
 
-YUV or Gray example:
+YUV or Gray example. The plugins autoload from the VapourSynth plugins directory, so
+`core.std.LoadPlugin` is only needed when they were installed somewhere else:
 
 ```python
 import vapoursynth as vs
 
-core = vs.Core()
-core.std.LoadPlugin('/path/to/libscenechange.so')
-core.std.LoadPlugin('/path/to/libtemporalsoften2.so')
+core = vs.core
 
 clip = core.scd.Detect(clip, thresh=20)
 clip = core.focus2.TemporalSoften2(clip)
@@ -155,15 +157,13 @@ clip = core.focus2.TemporalSoften2(clip)
 ### Python wrapper
 
 The `TemporalSoften` class in the `scenechange` package collapses the boilerplate above into a
-single call and handles the RGB property-copy step automatically. Its static `load_plugins` method
-loads the bundled plugins into the core, so no manual `LoadPlugin` paths are required:
+single call and handles the RGB property-copy step automatically:
 
 ```python
 import vapoursynth as vs
 from scenechange import TemporalSoften
 
 core = vs.core
-TemporalSoften.load_plugins(core)
 clip = TemporalSoften(core).soften(clip, luma_threshold=4)
 ```
 

@@ -8,38 +8,33 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1'
+        with:
+          python-version: '3.13'
       - name: 'Install dependencies'
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov libcmocka-dev ninja-build pkg-config
-      - name: 'Fetch VapourSynth headers'
-        run: >-
-          git clone --depth 1 --branch R72
-          https://github.com/vapoursynth/vapoursynth.git
-          '${{ github.workspace }}/vendor/vapoursynth'
+          python -m pip install --upgrade meson
       - name: 'Configure'
         run: >-
-          cmake -G Ninja -B '${{ github.workspace }}/build'
-          --install-prefix '${{ github.workspace }}/build/prefix'
-          -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
-          -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
-          -DBUILD_TESTS=ON
-          -DSCENECHANGE_COVERAGE=ON
-          ${{ matrix.backend.force_generic && '-DSCENECHANGE_FORCE_GENERIC=ON' || '' }}
+          meson setup build --buildtype '${{ matrix.build-type }}'
+          -Db_coverage=true -Dtests=enabled
+          ${{ matrix.backend.force_generic && '-Dforce_generic=true' || '' }}
       - name: 'Build'
-        run: 'cmake --build ${{ github.workspace }}/build --verbose'
+        run: 'meson compile -C build --verbose'
       - name: 'Run tests'
-        run: 'ctest --test-dir ${{ github.workspace }}/build/tests --output-on-failure'
-      - if: "matrix.build-type == 'Debug'"
+        run: 'meson test -C build --print-errorlogs'
+      - if: "matrix.build-type == 'debug'"
         name: 'Generate coverage information'
         run: >-
-          lcov -c -d '${{ github.workspace }}/build' -o coverage.lcov
+          lcov -c -d build -o coverage.lcov
           --exclude build
           --exclude tests
-          --exclude '*/_deps/*'
+          --exclude '*/subprojects/*'
           --include '*/native/*'
           --keep-going
-      - if: "matrix.build-type == 'Debug'"
+      - if: "matrix.build-type == 'debug'"
         name: 'Coveralls'
         uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
         with:
@@ -59,7 +54,7 @@ jobs:
           - force_generic: true
             runner: 'ubuntu-latest'
             suffix: 'generic'
-        build-type: ['Debug', 'Release']
+        build-type: ['debug', 'release']
   finish-coveralls:
     needs: 'tests'
     runs-on: 'ubuntu-latest'

@@ -15,9 +15,13 @@ maintain code quality and consistency.
 
 ## Development Environment
 
-- Use [vcpkg](https://vcpkg.io/) to manage C/C++ dependencies:
-  - Install dependencies: `vcpkg install`
-  - Add a dependency: `vcpkg install <package>`
+- Use [Meson](https://mesonbuild.com/) to build the plugins:
+  - Configure: `meson setup build`
+  - Build: `meson compile -C build`
+  - Run the native tests: `meson setup build -Dtests=enabled && meson test -C build`
+  - C dependencies come from the system where available; `cmocka` falls back to a
+    [wrapdb](https://mesonbuild.com/Wrapdb-projects.html) subproject. Pass
+    `--wrap-mode=nofallback` to forbid that download.
 - Use [Yarn](https://yarnpkg.com/) to install Node.js based dependencies:
   - Install Node.js dependencies: `yarn`
 - Install [pre-commit](https://pre-commit.com/) and make sure it is enabled by running

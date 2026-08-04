@@ -11,6 +11,11 @@ local utils = import 'utils.libsonnet';
   // vapoursynth>=75 (matching vs-jetpack) only supports Python 3.12+.
   supported_python_versions: ['3.12', '3.13', '3.14'],
   description: 'Scene change detection plugin for VapourSynth.',
+  shared_ignore+: [
+    '/build-wheel/',
+    '/subprojects/*/',
+    '/subprojects/.wraplock',
+  ],
   authors+: [
     {
       'family-names': 'Motofumi',

@@ -162,23 +162,55 @@ jobs:
           path: 'dist'
       - uses: 'pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247'
       - env:
+          EXPECTED_ZIPS: '2'
           GH_TOKEN: '${{ github.token }}'
           HEAD_SHA: '${{ github.sha }}'
         name: 'Download the Windows zips from the Meson run'
         run: |
           run_id=$(gh run list --workflow Meson --commit "$HEAD_SHA" \
             --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
+          if [[ -z "$run_id" || "$run_id" == 'null' ]]; then
+            echo "::error::No successful Meson run for ${HEAD_SHA}; the Windows zips are missing."
+            exit 1
+          fi
           mkdir -p zips
-          if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
-            gh run download "$run_id" --pattern 'scenechange-release-windows-*' --dir zips
+          gh run download "$run_id" --pattern 'scenechange-release-windows-*' --dir zips
+          found=$(find zips -name '*.zip' | wc -l)
+          if [[ "$found" -ne "$EXPECTED_ZIPS" ]]; then
+            echo "::error::Expected ${EXPECTED_ZIPS} Windows zips from run ${run_id}, found ${found}."
+            find zips -type f
+            exit 1
           fi
       - env:
           GH_TOKEN: '${{ github.token }}'
         name: 'Create or update draft release'
         run: |
-          mapfile -t zips < <(find zips -name '*.zip')
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl "${zips[@]}" ||
-            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl "${zips[@]}" --clobber
+          tag="$GITHUB_REF_NAME"
+          mapfile -t assets < <(
+            find dist zips -type f \( -name '*.tar.gz' -o -name '*.whl' -o -name '*.zip' \)
+          )
+          if [[ "${#assets[@]}" -eq 0 ]]; then
+            echo '::error::No distributions or archives were staged for the release.'
+            exit 1
+          fi
+          # Reuse the release for this tag when one already exists. Creating
+          # unconditionally is what previously left the wheels in a rival draft
+          # while a second record was the one published.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release ${tag} already exists; uploading into it."
+          else
+            gh release create "$tag" --draft --notes '' --verify-tag
+          fi
+          gh release upload "$tag" "${assets[@]}" --clobber
+          # Assert the outcome: a release that silently lost files must fail the
+          # run rather than wait to be noticed after publication.
+          attached=$(gh release view "$tag" --json assets --jq '.assets | length')
+          if [[ "$attached" -ne "${#assets[@]}" ]]; then
+            echo "::error::Expected ${#assets[@]} assets on ${tag}, found ${attached}."
+            gh release view "$tag" --json assets --jq '.assets[].name'
+            exit 1
+          fi
+          echo "Attached ${attached} assets to ${tag}."
 name: 'Publish'
 'on':
   push:

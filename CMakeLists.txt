@@ -25,6 +25,28 @@ if(NOT VAPOURSYNTH_FOUND)
   find_path(VAPOURSYNTH_INCLUDE_DIR
             NAMES VapourSynth4.h
             PATH_SUFFIXES vapoursynth)
+  if(NOT VAPOURSYNTH_INCLUDE_DIR)
+    # Since R74 VapourSynth installs its headers inside the Python package
+    # rather than a system include directory, so ask it where they are before
+    # giving up. See https://vapoursynth.com/doc/packaging.html.
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if(Python3_Interpreter_FOUND)
+      execute_process(
+        COMMAND "${Python3_EXECUTABLE}" -c
+                "import vapoursynth; print(vapoursynth.get_include())"
+        OUTPUT_VARIABLE _vs_python_include
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE _vs_python_result)
+      if(_vs_python_result EQUAL 0 AND EXISTS
+                                       "${_vs_python_include}/VapourSynth4.h")
+        message(STATUS "Found VapourSynth headers via Python: "
+                       "${_vs_python_include}")
+        set(VAPOURSYNTH_INCLUDE_DIR "${_vs_python_include}"
+            CACHE PATH "VapourSynth include directory." FORCE)
+      endif()
+    endif()
+  endif()
   if(NOT VAPOURSYNTH_INCLUDE_DIR AND SCENECHANGE_FETCH_VAPOURSYNTH_HEADERS)
     # VapourSynth4.h only depends on stdint.h and stddef.h, so fetching this
     # single header is enough to compile the plugins. The VapourSynth runtime is

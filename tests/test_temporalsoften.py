@@ -1,21 +1,12 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from scenechange import TemporalSoften
 import vapoursynth as vs  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from pytest_mock import MockerFixture
-
-
-@contextmanager
-def _identity_as_file(entry: Path) -> Iterator[Path]:
-    yield entry
 
 
 def test_init_binds_plugin_namespaces(mocker: MockerFixture) -> None:
@@ -25,31 +16,6 @@ def test_init_binds_plugin_namespaces(mocker: MockerFixture) -> None:
     assert ts.resize is core.resize.Point
     assert ts.detect is core.scd.Detect
     assert ts.tsoften is core.focus2.TemporalSoften2
-
-
-def test_load_plugins_loads_each_bundled_plugin(mocker: MockerFixture) -> None:
-    files = mocker.Mock()
-    files.iterdir.return_value = [
-        Path('libscenechange.so'),
-        Path('libtemporalsoften2.so'),
-        Path('notes.txt'),
-    ]
-    mocker.patch('scenechange.temporalsoften.resources.files', return_value=files)
-    mocker.patch('scenechange.temporalsoften.resources.as_file', _identity_as_file)
-    core = mocker.MagicMock()
-    TemporalSoften.load_plugins(core)
-    loaded = [call.args[0] for call in core.std.LoadPlugin.call_args_list]
-    assert loaded == ['libscenechange.so', 'libtemporalsoften2.so']
-
-
-def test_load_plugins_ignores_already_loaded(mocker: MockerFixture) -> None:
-    files = mocker.Mock()
-    files.iterdir.return_value = [Path('libscenechange.so')]
-    mocker.patch('scenechange.temporalsoften.resources.files', return_value=files)
-    mocker.patch('scenechange.temporalsoften.resources.as_file', _identity_as_file)
-    core = mocker.MagicMock()
-    core.std.LoadPlugin.side_effect = vs.Error('already loaded')
-    TemporalSoften.load_plugins(core)
 
 
 def test_set_props_returns_copy_with_scene_change_props(mocker: MockerFixture) -> None:

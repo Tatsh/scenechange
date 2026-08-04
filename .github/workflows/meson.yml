@@ -1,0 +1,159 @@
+jobs:
+  build-linux:
+    permissions:
+      contents: 'read'
+    runs-on: '${{ matrix.arch.runner }}'
+    steps:
+      - uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1'
+        with:
+          python-version: '3.13'
+      - name: 'Install dependencies'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build zip
+          python -m pip install --upgrade meson
+      # No VapourSynth is installed here, so the build downloads VapourSynth4.h
+      # itself. This exercises the same path the wheel builds take.
+      - name: 'Configure'
+        run: >-
+          meson setup build --buildtype '${{ matrix.build-type }}'
+          --prefix /usr -Dtests=disabled
+      - name: 'Build'
+        run: 'meson compile -C build --verbose'
+      - env:
+          ARCH: '${{ matrix.arch.suffix }}'
+        name: 'Package'
+        run: |
+          version=$(meson introspect --projectinfo build | jq -r '.version')
+          meson install -C build --destdir "${GITHUB_WORKSPACE}/stage"
+          (cd stage && zip -r "${GITHUB_WORKSPACE}/scenechange-${version}-linux-${ARCH}.zip" .)
+      - name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-${{ matrix.build-type }}-linux-${{ matrix.arch.suffix }}'
+          path: '${{ github.workspace }}/scenechange-*-linux-*.zip'
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - runner: 'ubuntu-latest'
+            suffix: 'x86_64'
+          - runner: 'ubuntu-24.04-arm'
+            suffix: 'arm64'
+        build-type: ['debug', 'release']
+  build-macos:
+    permissions:
+      contents: 'read'
+    runs-on: '${{ matrix.os.runner }}'
+    steps:
+      - uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1'
+        with:
+          python-version: '3.13'
+      # Homebrew ships vapoursynth.pc, so this job covers the pkg-config
+      # discovery path that the Linux and Windows jobs do not.
+      - name: 'Install dependencies'
+        run: |
+          brew install ninja vapoursynth
+          python -m pip install --upgrade meson
+      - name: 'Configure'
+        run: >-
+          meson setup build --buildtype '${{ matrix.build-type }}'
+          --prefix /usr/local -Dtests=disabled
+      - name: 'Build'
+        run: 'meson compile -C build --verbose'
+      - env:
+          ARCH: '${{ matrix.os.suffix }}'
+        name: 'Package'
+        run: |
+          version=$(meson introspect --projectinfo build | jq -r '.version')
+          meson install -C build --destdir "${GITHUB_WORKSPACE}/stage"
+          (cd stage && zip -r "${GITHUB_WORKSPACE}/scenechange-${version}-macos-${ARCH}.zip" .)
+      - name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-${{ matrix.build-type }}-macos-${{ matrix.os.suffix }}'
+          path: '${{ github.workspace }}/scenechange-*-macos-*.zip'
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ['debug', 'release']
+        os:
+          - runner: 'macos-latest'
+            suffix: 'arm64'
+          - runner: 'macos-15-intel'
+            suffix: 'x86_64'
+  build-windows:
+    permissions:
+      attestations: 'write'
+      contents: 'read'
+      id-token: 'write'
+    runs-on: '${{ matrix.sys.runner }}'
+    steps:
+      - uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1'
+        with:
+          python-version: '3.13'
+      - name: 'Install dependencies'
+        run: 'python -m pip install --upgrade meson ninja'
+      # --vsenv activates the Visual Studio environment, so no separate MSVC
+      # setup action is needed.
+      - name: 'Configure'
+        run: >-
+          meson setup build --vsenv --buildtype ${{ matrix.build-type }}
+          -Dtests=disabled
+      - name: 'Build'
+        run: 'meson compile -C build --verbose'
+      # Windows users extract the zip straight into their VapourSynth plugin
+      # directory, so it is flat rather than an installed prefix tree.
+      - name: 'Package'
+        run: |
+          $version = (meson introspect --projectinfo build | ConvertFrom-Json).version
+          New-Item -ItemType Directory -Force -Path stage | Out-Null
+          Copy-Item build/native/*.dll stage/
+          Copy-Item LICENSE.txt, README.md stage/
+          $name = "scenechange-$version-windows-${{ matrix.sys.arch }}.zip"
+          Compress-Archive -Path stage/* -DestinationPath $name -Force
+      - name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          if-no-files-found: 'error'
+          name: 'scenechange-${{ matrix.build-type }}-windows-${{ matrix.sys.arch }}'
+          path: '${{ github.workspace }}/scenechange-*-windows-*.zip'
+      - if: "matrix.build-type == 'release'"
+        name: 'Attest'
+        uses: 'actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373'
+        with:
+          subject-path: '${{ github.workspace }}/scenechange-*-windows-*.zip'
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ['debug', 'release']
+        sys:
+          - arch: 'x86_64'
+            runner: 'windows-latest'
+          - arch: 'arm64'
+            runner: 'windows-11-arm'
+name: 'Meson'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+permissions: {}

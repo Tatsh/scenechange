@@ -23,7 +23,7 @@ BEGIN
             VALUE "InternalName",     "@SCENECHANGE_RC_INTERNAL_NAME@"
             VALUE "LegalCopyright",   "@SCENECHANGE_RC_COPYRIGHT@"
             VALUE "OriginalFilename", "@SCENECHANGE_RC_ORIGINAL_FILENAME@"
-            VALUE "ProductName",      "@CMAKE_PROJECT_NAME@"
+            VALUE "ProductName",      "@PROJECT_NAME@"
             VALUE "ProductVersion",   "@PROJECT_VERSION@"
         END
     END

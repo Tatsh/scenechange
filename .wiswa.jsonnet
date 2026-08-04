@@ -24,13 +24,21 @@ local utils = import 'utils.libsonnet';
   clang_format_args: 'native/*.c',
   github+: {
     workflows+: {
-      release_gate_workflows: ['CMake', 'Native Tests'],
+      release_gate_workflows: ['Meson', 'Native Tests'],
     },
   },
   pyproject+: {
     'build-system': {
-      'build-backend': 'scikit_build_core.build',
-      requires: ['scikit-build-core>=0.12.2'],
+      'build-backend': 'hatchling.build',
+      requires: [
+        'hatchling>=1.27.0',
+        'meson>=1.3.0',
+        'ninja>=1.11.0',
+        'packaging>=25.0',
+      ],
+    },
+    'dependency-groups'+: {
+      dev+: ['hatchling>=1.27.0', 'meson>=1.3.0', 'ninja>=1.11.0'],
     },
     project+: {
       name: 'vapoursynth-scenechange',
@@ -48,50 +56,42 @@ local utils = import 'utils.libsonnet';
       commitizen+: {
         remove_path_prefixes: ['include', 'native', 'scenechange'],
         version_files+: [
-          'CMakeLists.txt',
+          'meson.build',
           'native/scenechange.c',
           'native/temporalsoften.c',
-          'vcpkg.json',
         ],
       },
-      hatch:: null,
-      'scikit-build': {
-        cmake: {
-          version: '>=3.28',
-          define: {
-            BUILD_DOCS: 'OFF',
-            BUILD_PYTHON_PACKAGE: 'ON',
-            BUILD_TESTS: 'OFF',
+      ruff+: {
+        'namespace-packages': ['docs', 'tests', 'tools'],
+      },
+      hatch: {
+        build: {
+          targets: {
+            sdist: {
+              include: [
+                '/Doxyfile.in',
+                '/LICENSE.txt',
+                '/README.md',
+                '/hatch_build.py',
+                '/meson.build',
+                '/meson.options',
+                '/native',
+                '/pyproject.toml',
+                '/scenechange',
+                '/tools',
+              ],
+            },
+            wheel: {
+              artifacts: [
+                'vapoursynth/plugins/*.dll',
+                'vapoursynth/plugins/*.dylib',
+                'vapoursynth/plugins/*.so',
+              ],
+              hooks: { custom: { path: 'hatch_build.py' } },
+              include: ['/scenechange', '/vapoursynth/plugins'],
+            },
           },
         },
-        'minimum-version': 'build-system.requires',
-        sdist: {
-          exclude: ['**'],
-          include: [
-            '/CMakeLists.txt',
-            '/LICENSE.txt',
-            '/README.md',
-            '/pyproject.toml',
-            '/scenechange/**/*.py',
-            '/scenechange/py.typed',
-            '/native/**/*.c',
-            '/native/**/*.h',
-            '/native/CMakeLists.txt',
-          ],
-        },
-        wheel: {
-          exclude: ['**/*.c', '**/*.h', '**/CMakeLists.txt'],
-          'py-api': 'py3',
-          packages: ['scenechange'],
-        },
-      },
-    },
-  },
-  vcpkg+: {
-    features: {
-      tests: {
-        description: 'Build the unit-test suite.',
-        dependencies: ['cmocka'],
       },
     },
   },
@@ -104,7 +104,7 @@ local utils = import 'utils.libsonnet';
       ],
     },
   },
-  prettierignore+: ['*.c', '*.h', '*.in'],
+  prettierignore+: ['*.c', '*.h', '*.in', '*.wrap', 'meson.build', 'meson.options'],
   vscode+: {
     c_cpp+: {
       configurations: [

@@ -29,8 +29,7 @@ repos:
           - '--allow-missing-credentials'
         id: 'detect-aws-credentials'
       - id: 'detect-private-key'
-      - exclude: "^vcpkg.*\\.json$"
-        id: 'end-of-file-fixer'
+      - id: 'end-of-file-fixer'
       - files: "^(\\.(docker|eslint|prettier)ignore|CODEOWNERS|\\.gitattributes)$"
         id: 'file-contents-sorter'
       - id: 'fix-byte-order-marker'

@@ -22,12 +22,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
-      - if: "matrix.language == 'c-cpp'"
-        name: 'Fetch VapourSynth headers'
-        run: >-
-          git clone --depth 1 --branch R72
-          https://github.com/vapoursynth/vapoursynth.git
-          '${{ github.workspace }}/vendor/vapoursynth'
+          python3 -m pip install --upgrade meson
       - name: 'Initialize CodeQL'
         uses: 'github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81'
         with:
@@ -35,12 +30,10 @@ jobs:
           languages: '${{ matrix.language }}'
       - if: "matrix.language == 'c-cpp'"
         name: 'Configure'
-        run: >-
-          cmake -G Ninja -B '${{ github.workspace }}/build'
-          -DVAPOURSYNTH_INCLUDE_DIR='${{ github.workspace }}/vendor/vapoursynth/include'
+        run: 'meson setup build -Dtests=disabled'
       - if: "matrix.language == 'c-cpp'"
         name: 'Build'
-        run: 'cmake --build ${{ github.workspace }}/build --verbose'
+        run: 'meson compile -C build --verbose'
       - name: 'Perform CodeQL Analysis'
         uses: 'github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81'
         with:

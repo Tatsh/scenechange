@@ -9,6 +9,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Changed
+
+- Adopted the [VapourSynth packaging conventions](https://vapoursynth.com/doc/packaging.html). The
+  wheel now installs the plugins into `<site-packages>/vapoursynth/plugins`, where VapourSynth
+  autoloads them, instead of shipping them as `scenechange` package data.
+- Replaced the CMake build system with Meson, and the scikit-build-core wheel backend with
+  Hatchling driving Meson from `hatch_build.py`. CMake options map to Meson options as
+  `VAPOURSYNTH_PLUGINS_DIR` → `plugins_dir`, `BUILD_TESTS` → `tests`, `SCENECHANGE_FORCE_GENERIC` →
+  `force_generic`, `BUILD_DOCS` → `docs`, `SCENECHANGE_FETCH_VAPOURSYNTH_HEADERS` →
+  `fetch_vapoursynth_headers`, and `SCENECHANGE_COVERAGE` → the built-in `b_coverage`.
+- The `CMake` GitHub Actions workflow is now `Meson`, and its binary archives are produced by
+  `meson install` plus `zip` rather than CPack.
+
+### Removed
+
+- `scenechange.TemporalSoften.load_plugins`. The plugins autoload, so there is nothing left to
+  load.
+- vcpkg manifests and CMake presets. `cmocka` now resolves through the system or a Meson wrapdb
+  subproject.
+
 ## [0.4.0] - 2026-06-02
 
 ### Added

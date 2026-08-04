@@ -7,7 +7,7 @@
  * file per ISA backend (for example @c temporalsoften_x86.c for SSE2). All
  * backends export the same three functions declared here; the host
  * @c temporalsoften.c dispatches to whichever set the build system chose at
- * configure time based on @c CMAKE_SYSTEM_PROCESSOR.
+ * configure time based on the host CPU family.
  *
  * Each function processes one plane of a single frame in place, blending the
  * destination plane with up to fifteen reference planes (one per temporal

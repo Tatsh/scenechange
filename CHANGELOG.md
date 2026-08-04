@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Fixed
+
+- macOS wheels are tagged with the deployment target they were built against again. 0.5.0 shipped
+  `macosx_15_0_x86_64` and `macosx_26_0_arm64`, taken from the machine that built them, so macOS
+  installations older than those fell back to the source distribution.
+
 ## [0.5.0] - 2026-08-04
 
 ### Changed

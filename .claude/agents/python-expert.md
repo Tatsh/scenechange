@@ -31,6 +31,7 @@ conventions defined in the rule files under `.claude/rules/`.
   ```python
   from bascom import setup_logging
 
+
   @click.command()
   @click.option('-d', '--debug', is_flag=True)
   def my_command(debug: bool = False) -> None:
@@ -41,11 +42,14 @@ conventions defined in the rule files under `.claude/rules/`.
   Additional third-party loggers can be added as needed:
 
   ```python
-  setup_logging(debug=debug, loggers={
-      'scenechange': {},
-      'urllib3': {},
-      'soupsieve': {},
-  })
+  setup_logging(
+      debug=debug,
+      loggers={
+          'scenechange': {},
+          'urllib3': {},
+          'soupsieve': {},
+      },
+  )
   ```
 
   In library modules, define a module-level logger (not exported):
@@ -126,6 +130,7 @@ All code and comments must be word-wrapped at 100 characters.
           raise RuntimeError(body.get('error', 'Unknown'))
       else:
           return ''
+
 
   # After
   def handle_response(status: int, body: dict[str, str]) -> str:

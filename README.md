@@ -117,8 +117,9 @@ Supported colour families are GRAY (8-bit and 16-bit) and YUV (8-bit, 9-bit, 10-
 ### focus2.TemporalSoften2
 
 ```python
-clip = core.focus2.TemporalSoften2(clip, radius, luma_threshold, chroma_threshold,
-                                   scenechange, mode)
+clip = core.focus2.TemporalSoften2(
+    clip, radius, luma_threshold, chroma_threshold, scenechange, mode
+)
 ```
 
 - `radius`: 1 to 7. Default is 4.

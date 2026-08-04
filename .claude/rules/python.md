@@ -95,6 +95,7 @@
       else:
           return ''
 
+
   # After
   def handle_response(status: int, body: dict[str, str]) -> str:
       match status:
@@ -223,6 +224,7 @@
 
   ```python
   from bascom import setup_logging
+
 
   @click.command()
   @click.option('-d', '--debug', is_flag=True)

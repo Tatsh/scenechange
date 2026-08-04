@@ -1,4 +1,10 @@
-cmocka_dep = dependency('cmocka', required: get_option('tests'))
+# Build a fallback cmocka statically so that `meson install` never stages the
+# test framework alongside the plugins.
+cmocka_dep = dependency(
+  'cmocka',
+  default_options: ['default_library=static'],
+  required: get_option('tests'),
+)
 
 if cmocka_dep.found()
   # The kernel sources and flags come from native/meson.build, so the tests

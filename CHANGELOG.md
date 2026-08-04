@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.5.0] - 2026-08-04
+
 ### Changed
 
 - Adopted the [VapourSynth packaging conventions](https://vapoursynth.com/doc/packaging.html). The
@@ -28,6 +30,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   load.
 - vcpkg manifests and CMake presets. `cmocka` now resolves through the system or a Meson wrapdb
   subproject.
+
+### Fixed
+
+- Configuring with `-Dtests=enabled` and no system `cmocka` no longer stages the test framework's
+  shared library next to the plugins on `meson install`.
+- The configure-time `VapourSynth4.h` download now times out after thirty seconds, so a stalled
+  network fails the build quickly instead of hanging it.
 
 ## [0.4.0] - 2026-06-02
 

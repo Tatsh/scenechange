@@ -28,10 +28,12 @@ Use these strategies in order of preference:
 # Before
 def get_config() -> dict[str, Any]: ...
 
+
 # After
 class Config(TypedDict):
     name: str
     count: int
+
 
 def get_config() -> Config: ...
 ```
@@ -46,6 +48,7 @@ modules, or locally if single-use. Add them to `__all__` in
 # Before
 def first(items: Sequence[Any]) -> Any: ...
 
+
 # After
 def first[T](items: Sequence[T]) -> T: ...
 ```
@@ -58,6 +61,7 @@ Use PEP 695 `def func[T](...)` syntax (Python 3.12+). Do not use `TypeVar` direc
 # Before
 def decorator(fn: Any) -> Any: ...
 
+
 # After
 def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R]: ...
 ```
@@ -68,10 +72,12 @@ def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R]: ...
 # Before
 def func(**kwargs: Any) -> None: ...
 
+
 # After
 class FuncKwargs(TypedDict, total=False):
     option_a: str
     option_b: int
+
 
 def func(**kwargs: Unpack[FuncKwargs]) -> None: ...
 ```
@@ -81,6 +87,7 @@ def func(**kwargs: Unpack[FuncKwargs]) -> None: ...
 ```python
 # Before
 def process(data: Any) -> None: ...
+
 
 # After
 def process(data: str | bytes | Path) -> None: ...
@@ -92,9 +99,11 @@ def process(data: str | bytes | Path) -> None: ...
 # Before
 def read_all(reader: Any) -> str: ...
 
+
 # After
 class Readable(Protocol):
     def read(self) -> str: ...
+
 
 def read_all(reader: Readable) -> str: ...
 ```

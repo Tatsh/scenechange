@@ -171,18 +171,18 @@ quote-style = "single"
 [tool.ruff.lint]
 extend-select = ["ALL"]
 ignore = [
-  "ANN401",
-  "COM812",
-  "CPY001",
-  "D203",
-  "D204",
-  "D212",
-  "N818",
-  "Q000",
-  "Q003",
-  "S404",
-  "S603",
-  "TD002",
+  "any-type",
+  "avoidable-escaped-quote",
+  "bad-quotes-inline-string",
+  "error-suffix-on-exception-name",
+  "incorrect-blank-line-after-class",
+  "incorrect-blank-line-before-class",
+  "missing-copyright-notice",
+  "missing-todo-author",
+  "missing-trailing-comma",
+  "multi-line-summary-first-line",
+  "subprocess-without-shell-equals-true",
+  "suspicious-subprocess-import",
 ]
 preview = true
 

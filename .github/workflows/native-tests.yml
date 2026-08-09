@@ -8,7 +8,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1'
+      - uses: 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97'
         with:
           python-version: '3.13'
       - name: 'Install dependencies'
@@ -36,7 +36,7 @@ jobs:
           --keep-going
       - if: "matrix.build-type == 'debug'"
         name: 'Coveralls'
-        uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
+        uses: 'coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329'
         with:
           file: 'coverage.lcov'
           flag-name: '${{ matrix.backend.suffix }}-${{ matrix.build-type }}'
@@ -60,7 +60,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Finalise Coveralls report'
-        uses: 'coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e'
+        uses: 'coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329'
         with:
           parallel-finished: true
 name: 'Native Tests'

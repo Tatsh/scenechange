@@ -109,7 +109,7 @@ jobs:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         with:
           persist-credentials: false
-      - uses: 'pypa/cibuildwheel@4726cd35bb13f7bde50cf2761f2499ac7b3aa32c'
+      - uses: 'pypa/cibuildwheel@1828c10ab37f080699c7b81cea34097c684a7074'
         env:
           # The plugins are not Python C extensions (they are loaded at runtime
           # by VapourSynth), so a single build per platform yields a

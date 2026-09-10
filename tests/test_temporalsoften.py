@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from scenechange import TemporalSoften
 import vapoursynth as vs  # type: ignore[import-untyped]
+
+from scenechange import TemporalSoften
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture

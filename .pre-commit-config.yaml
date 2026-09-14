@@ -46,14 +46,14 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.12.12'
+    rev: '0.12.13'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
       - id: 'ruff-format'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.16.6'
+    rev: 'v0.16.7'
   - hooks:
       - id: 'check-github-actions'
       - id: 'check-github-workflows'
@@ -112,4 +112,4 @@ repos:
   - hooks:
       - id: 'cspell'
     repo: 'https://github.com/streetsidesoftware/cspell-cli'
-    rev: 'v10.1.0'
+    rev: 'v10.2.0'

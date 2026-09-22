@@ -12,6 +12,7 @@
 *.lock
 *.log
 *.min.js
+*.tsbuildinfo
 *.wrap
 *~
 .*.swp

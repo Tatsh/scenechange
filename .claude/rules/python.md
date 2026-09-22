@@ -19,7 +19,8 @@
     Allow unused arguments in functions and methods, primarily in cases where a method is
     overridden or a function must be compatible with an interface.
 - Suppress a Ruff diagnostic with `# ruff: ignore[rule-name]`, never `# noqa`. Ruff flags the
-  `# noqa` form, and `# noqa` cannot name a rule that has no code, such as `pytest-fixture-autouse`.
+  `# noqa` form, and `# noqa` cannot identify a rule that does not have a code, such as
+  `pytest-fixture-autouse`.
 - Never put a rationale after a suppression comment. `# ruff: ignore[...]`, `# type: ignore[...]`,
   `# ty: ignore[...]`, and `# pyright: ignore[...]` end with their rule names or codes and nothing
   else.

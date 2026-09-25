@@ -136,7 +136,7 @@ jobs:
           - cibw_archs: 'x86_64'
             os: 'macos-15-intel'
           - cibw_archs: 'arm64'
-            os: 'macos-latest'
+            os: 'macos-15'
           - cibw_archs: 'AMD64'
             os: 'windows-latest'
           - cibw_archs: 'ARM64'

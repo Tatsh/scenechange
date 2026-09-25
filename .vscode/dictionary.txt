@@ -1,7 +1,10 @@
 appimage
+archs
 asyncio
+auditwheel
 autoclass
 autodoc
+autoinstall
 autouse
 avisynth's
 bascom
@@ -12,6 +15,8 @@ buildtype
 cdrommsf
 charliermarsh
 chikuzen
+cibuildwheel
+cibw
 cmocka
 cmpeq
 cmplt
@@ -26,6 +31,7 @@ datatable
 datatables
 ddocs
 debugpy
+delocate
 denoiser
 destdir
 dfetch
@@ -70,14 +76,17 @@ jsonschema
 judgment
 kwargs
 lextudio
+libc
 libcmocka
 libera
+libm
 libscenechange
 libsonnet
 libtemporalsoften
 linters
 luma
 mainpage
+mapfile
 mdfile
 mesonbuild
 mesonmain
@@ -97,7 +106,6 @@ nofallback
 noone
 noqa
 norecursedirs
-nullglob
 numpy
 numpydoc
 oneline
@@ -123,6 +131,7 @@ pytest
 pythonhosted
 reflow
 regen
+retag
 returncode
 ripgreprc
 rstcheck
@@ -135,7 +144,6 @@ sectcreate
 setattr
 shellcheck
 shellformat
-shopt
 snapcraft
 soupsieve
 sphinxcontrib

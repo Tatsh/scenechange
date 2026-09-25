@@ -1,3 +1,7 @@
+# Hand-maintained Publish workflow: builds an sdist plus one wheel per
+# OS/CPU combination with cibuildwheel and publishes them all to PyPI in a
+# single job. A Wiswa regen overwrites this file with the single-wheel
+# template (as happened after v0.5.0); restore this version afterwards.
 jobs:
   check:
     permissions:
@@ -15,8 +19,8 @@ jobs:
         name: 'Wait for workflows'
         run: |
           sha="$COMMIT_SHA"
-          required_workflows=('Meson' 'Native Tests')
-          optional_workflows=('Prettier' 'QA' 'Spelling' 'Tests' 'markdownlint')
+          required_workflows=('Meson' 'Native Tests' 'Tests')
+          optional_workflows=('Prettier' 'QA' 'Spelling' 'markdownlint')
           process_workflow() {
             local workflow="$1" treat_missing="$2"
             local run status conclusion
@@ -72,13 +76,11 @@ jobs:
           done
           echo '::error::Timed out waiting for workflows.'
           exit 1
-  publish:
-    environment: 'release'
+  build-sdist:
     needs:
       - 'check'
     permissions:
-      contents: 'write'
-      id-token: 'write'
+      contents: 'read'
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -91,47 +93,96 @@ jobs:
         uses: 'astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7'
         with:
           enable-cache: false
-      - run: 'uv build'
-      - uses: 'pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33'
-      - if: "github.ref_type == 'tag'"
-        name: 'Upload release assets'
-        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+      - name: 'Build sdist'
+        run: 'uv build --sdist'
+      - uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
-          if-no-files-found: 'error'
-          name: 'release-assets-dist'
-          path: "dist/*.tar.gz\ndist/*.whl"
-  release-assets:
-    concurrency:
-      group: 'release-assets-${{ github.ref }}'
-      queue: 'max'
-    if: "github.ref_type == 'tag'"
+          name: 'sdist'
+          path: 'dist/*.tar.gz'
+  build-wheels:
     needs:
-      - 'publish'
+      - 'check'
     permissions:
+      contents: 'read'
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
+      - uses: 'pypa/cibuildwheel@4726cd35bb13f7bde50cf2761f2499ac7b3aa32c'
+        env:
+          # The plugins are not Python C extensions (they are loaded at runtime
+          # by VapourSynth), so a single build per platform yields a
+          # Python-agnostic py3-none wheel; Meson downloads VapourSynth4.h.
+          CIBW_ARCHS: '${{ matrix.cibw_archs }}'
+          CIBW_BUILD: 'cp313-*'
+          # hatch_build.py already emits a platform-specific tag, and the
+          # plugins link nothing beyond libc and libm, so there is nothing for
+          # auditwheel or delocate to vendor or retag.
+          CIBW_REPAIR_WHEEL_COMMAND: ''
+          CIBW_SKIP: 'pp* *-win32'
+      - uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          name: 'wheels-${{ matrix.os }}-${{ matrix.cibw_archs }}'
+          path: './wheelhouse/*.whl'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cibw_archs: 'x86_64'
+            os: 'ubuntu-latest'
+          - cibw_archs: 'aarch64'
+            os: 'ubuntu-24.04-arm'
+          - cibw_archs: 'x86_64'
+            os: 'macos-15-intel'
+          - cibw_archs: 'arm64'
+            os: 'macos-latest'
+          - cibw_archs: 'AMD64'
+            os: 'windows-latest'
+          - cibw_archs: 'ARM64'
+            os: 'windows-11-arm'
+  publish:
+    environment: 'release'
+    needs:
+      - 'build-sdist'
+      - 'build-wheels'
+    permissions:
+      actions: 'read'
       contents: 'write'
+      id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-      - name: 'Download build artifacts'
-        uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
+      - uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
         with:
           merge-multiple: true
-          path: '_release_assets'
-          pattern: 'release-assets-*'
+          path: 'dist'
+          pattern: 'wheels-*'
+      - uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
+        with:
+          name: 'sdist'
+          path: 'dist'
+      - uses: 'pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33'
       - env:
-          GH_REPO: '${{ github.repository }}'
+          GH_TOKEN: '${{ github.token }}'
+          HEAD_SHA: '${{ github.sha }}'
+        name: 'Download the Windows zips from the Meson run'
+        run: |
+          run_id=$(gh run list --workflow Meson --commit "$HEAD_SHA" \
+            --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
+          mkdir -p zips
+          if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
+            gh run download "$run_id" --pattern 'scenechange-release-windows-*' --dir zips
+          fi
+      - env:
           GH_TOKEN: '${{ github.token }}'
         name: 'Create or update draft release'
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
-            gh release create "$GITHUB_REF_NAME" --draft --notes ''
-          shopt -s nullglob
-          assets=(_release_assets/*)
-          if [ -z "${assets[0]-}" ]; then
-            echo 'No build artifacts to attach.'
-            exit 0
-          fi
-          gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-        shell: 'bash'
+          mapfile -t zips < <(find zips -name '*.zip')
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl "${zips[@]}" ||
+            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl "${zips[@]}" --clobber
 name: 'Publish'
 'on':
   push:

@@ -9,9 +9,7 @@ import shutil
 import subprocess as sp
 import sys
 
-from hatchling.builders.config import BuilderConfig
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
-from hatchling.plugin.manager import PluginManager
 from packaging import tags
 
 __all__ = ('CustomHook',)
@@ -23,7 +21,9 @@ PLUGIN_SUFFIXES = ('.dll', '.dylib', '.so')
 """
 
 
-class CustomHook(BuildHookInterface[BuilderConfig[Any], PluginManager]):
+class CustomHook(
+    BuildHookInterface[Any],  # type: ignore[type-arg]  # ty: ignore[invalid-type-arguments]
+):
     """Compile the plugins with Meson and stage them for the wheel."""
 
     source_dir = Path('build-wheel')

@@ -52,7 +52,18 @@ class CustomHook(BuildHookInterface[Any]):
         platform_tag = os.environ.get('SCENECHANGE_WHEEL_PLATFORM_TAG') or self._platform_tag()
         build_data['tag'] = f'py3-none-{platform_tag}'
         meson = (sys.executable, '-m', 'mesonbuild.mesonmain')
-        setup = [*meson, 'setup', str(self.source_dir), '-Dtests=disabled']
+        setup = [
+            *meson,
+            'setup',
+            str(self.source_dir),
+            # Wheels link the release CRT. Meson configures a debug build
+            # type by default. The default selects /MDd through
+            # b_vscrt=from_buildtype, and the resulting DLLs require debug
+            # runtimes most users do not have installed.
+            '--buildtype=release',
+            '-Db_vscrt=md',
+            '-Dtests=disabled',
+        ]
         if (self.source_dir / 'meson-info').is_dir():
             # ``--vsenv`` is read-only after the first configure, so it may only
             # be passed when the build directory is created.

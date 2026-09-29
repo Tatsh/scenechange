@@ -126,6 +126,36 @@ jobs:
           Copy-Item LICENSE.txt, README.md stage/
           $name = "scenechange-$version-windows-${{ matrix.sys.arch }}.zip"
           Compress-Archive -Path stage/* -DestinationPath $name -Force
+      # Release DLLs link the release CRT. The scan below reports markers
+      # such as VCRUNTIME140D or ucrtbased and fails the job when the
+      # staged plugins reference a debug runtime.
+      - if: "matrix.build-type == 'release'"
+        name: 'Check for debug runtime linkage'
+        run: |
+          $markers = @(
+            'VCRUNTIME140D',
+            'MSVCP140D',
+            'VCOMP140D',
+            'CONCRT140D',
+            'VCCORLIB140D',
+            'ucrtbased',
+            'MSVCRTD',
+            'MSVCPRTD'
+          )
+          $failed = $false
+          Get-ChildItem stage/*.dll | ForEach-Object {
+            $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+            $text = [System.Text.Encoding]::ASCII.GetString($bytes)
+            foreach ($marker in $markers) {
+              if ($text.Contains($marker)) {
+                Write-Host "::error::$($_.Name) references debug runtime $marker."
+                $failed = $true
+              }
+            }
+          }
+          if ($failed) {
+            exit 1
+          }
       - name: 'Upload artefacts'
         uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
@@ -146,6 +176,59 @@ jobs:
             runner: 'windows-latest'
           - arch: 'arm64'
             runner: 'windows-11-arm'
+  wheel-windows:
+    # Build the wheel the way cibuildwheel builds it for releases, then scan
+    # the plugins for debug runtime references. The scan fails the job when
+    # markers such as VCRUNTIME140D or ucrtbased appear in a DLL.
+    permissions:
+      contents: 'read'
+    runs-on: 'windows-latest'
+    steps:
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97'
+        with:
+          python-version: '3.13'
+      - name: 'Install dependencies'
+        run: 'python -m pip install --upgrade build hatchling meson ninja packaging'
+      - name: 'Build wheel'
+        run: 'python -m build --wheel --no-isolation --outdir wheelhouse'
+      - name: 'Check for debug runtime linkage'
+        run: |
+          $markers = @(
+            'VCRUNTIME140D',
+            'MSVCP140D',
+            'VCOMP140D',
+            'CONCRT140D',
+            'VCCORLIB140D',
+            'ucrtbased',
+            'MSVCRTD',
+            'MSVCPRTD'
+          )
+          $wheel = (Get-ChildItem wheelhouse/*.whl | Select-Object -First 1).FullName
+          Expand-Archive -Path $wheel -DestinationPath wheelcheck -Force
+          $failed = $false
+          Get-ChildItem wheelcheck/vapoursynth/plugins/*.dll | ForEach-Object {
+            $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+            $text = [System.Text.Encoding]::ASCII.GetString($bytes)
+            foreach ($marker in $markers) {
+              if ($text.Contains($marker)) {
+                Write-Host "::error::$($_.Name) references debug runtime $marker."
+                $failed = $true
+              }
+            }
+          }
+          if ($failed) {
+            exit 1
+          }
+      - name: 'Upload artefacts'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          if-no-files-found: 'error'
+          name: 'wheel-windows'
+          path: '${{ github.workspace }}/wheelhouse/*.whl'
 name: 'Meson'
 'on':
   pull_request:

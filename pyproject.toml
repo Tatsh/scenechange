@@ -54,7 +54,7 @@ license = "LGPL-2.1-or-later"
 name = "vapoursynth-scenechange"
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
-version = "0.5.0"
+version = "0.5.1"
 
 [[project.authors]]
 email = "audvare@gmail.com"
@@ -90,12 +90,12 @@ version_provider = "pep621"
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
-omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py", "hatch_build.py"]
 show_missing = true
 
 [tool.coverage.run]
 branch = true
-omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py", "hatch_build.py"]
 
 [tool.doc8]
 max-line-length = 100

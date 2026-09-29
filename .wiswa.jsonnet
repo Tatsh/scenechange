@@ -3,10 +3,10 @@ local utils = import 'utils.libsonnet';
 {
   uses_user_defaults: true,
   local settings = self,
-  security_policy_supported_versions: { '0.2.x': ':white_check_mark:' },
+  security_policy_supported_versions: { '0.5.x': ':white_check_mark:' },
   project_name: 'scenechange',
   pypi_project_name: 'vapoursynth-scenechange',
-  version: '0.5.0',
+  version: '0.5.1',
   license: 'LGPL-2.1-or-later',
   // vapoursynth>=75 (matching vs-jetpack) only supports Python 3.12+.
   supported_python_versions: ['3.12', '3.13', '3.14'],
@@ -68,6 +68,10 @@ local utils = import 'utils.libsonnet';
       },
       ruff+: {
         'namespace-packages': ['docs', 'tests', 'tools'],
+      },
+      coverage+: {
+        report+: { omit+: ['hatch_build.py'] },
+        run+: { omit+: ['hatch_build.py'] },
       },
       hatch: {
         build: {

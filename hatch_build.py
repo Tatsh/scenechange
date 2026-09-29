@@ -21,9 +21,7 @@ PLUGIN_SUFFIXES = ('.dll', '.dylib', '.so')
 """
 
 
-class CustomHook(
-    BuildHookInterface[Any],  # type: ignore[type-arg]  # ty: ignore[invalid-type-arguments]
-):
+class CustomHook(BuildHookInterface[Any]):
     """Compile the plugins with Meson and stage them for the wheel."""
 
     source_dir = Path('build-wheel')

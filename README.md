@@ -3,7 +3,7 @@
 <!-- WISWA-GENERATED-README:START -->
 
 [![Python versions](https://img.shields.io/pypi/pyversions/vapoursynth-scenechange.svg?color=blue&logo=python&logoColor=white)](https://www.python.org/)
-[![PyPI - Version](https://img.shields.io/pypi/v/scenechange)](https://pypi.org/project/vapoursynth-scenechange/)
+[![PyPI - Version](https://img.shields.io/pypi/v/vapoursynth-scenechange)](https://pypi.org/project/vapoursynth-scenechange/)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/tags)
 [![License](https://img.shields.io/github/license/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt)
 [![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.5.1/master)](https://github.com/Tatsh/scenechange/compare/v0.5.1...master)
@@ -16,7 +16,7 @@
 [![uv](https://img.shields.io/badge/uv-261230?logo=astral)](https://docs.astral.sh/uv/)
 [![pytest](https://img.shields.io/badge/pytest-zz?logo=Pytest&labelColor=black&color=black)](https://docs.pytest.org/en/stable/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Downloads](https://static.pepy.tech/badge/scenechange/month)](https://pepy.tech/project/scenechange)
+[![Downloads](https://static.pepy.tech/badge/vapoursynth-scenechange/month)](https://pepy.tech/project/vapoursynth-scenechange)
 [![Stargazers](https://img.shields.io/github/stars/Tatsh/scenechange?logo=github&style=flat)](https://github.com/Tatsh/scenechange/stargazers)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Tatsh/scenechange/master.svg)](https://results.pre-commit.ci/latest/github/Tatsh/scenechange/master)
 [![Prettier](https://img.shields.io/badge/Prettier-black?logo=prettier)](https://prettier.io/)

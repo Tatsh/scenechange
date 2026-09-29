@@ -1,8 +1,8 @@
 {
   "_wiswa": {
     "commandLine": "wiswa -d",
-    "lastRun": "2026-09-22T03:09:04Z",
-    "version": "307e98b-dirty"
+    "lastRun": "2026-09-29T01:39:50Z",
+    "version": "7137092-dirty"
   },
   "contributors": ["Andrew Udvare <audvare@gmail.com>", "Oka Motofumi <chikuzen.mo@gmail.com>"],
   "cspell": {
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@prettier/plugin-xml": "^3.4.2",
     "cspell": "^10.3.3",
-    "markdownlint-cli2": "^0.23.2",
+    "markdownlint-cli2": "^0.23.3",
     "prettier": "^3.9.8",
     "prettier-plugin-ini": "^1.3.0",
     "prettier-plugin-sort-json": "^4.2.0",
@@ -78,7 +78,7 @@
     "showFound": true
   },
   "name": "scenechange",
-  "packageManager": "yarn@4.18.0",
+  "packageManager": "yarn@4.18.1",
   "prettier": {
     "endOfLine": "lf",
     "iniSpaceAroundEquals": true,

@@ -63,5 +63,6 @@ name: 'Tests'
       - 'uv.lock'
       - 'poetry.lock'
       - 'tests/**'
+  workflow_dispatch:
 permissions:
   contents: 'read'

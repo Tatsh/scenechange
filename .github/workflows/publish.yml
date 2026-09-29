@@ -116,10 +116,9 @@ jobs:
           # Python-agnostic py3-none wheel; Meson downloads VapourSynth4.h.
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
           CIBW_BUILD: 'cp313-*'
-          # hatch_build.py already emits a platform-specific tag, and the
-          # plugins link nothing beyond libc and libm, so there is nothing for
-          # auditwheel or delocate to vendor or retag.
-          CIBW_REPAIR_WHEEL_COMMAND: ''
+          # Auditwheel repair stays enabled. The repair gives Linux wheels
+          # the manylinux and musllinux tags PyPI requires. The plugins link
+          # nothing beyond libc and libm. The repair vendors no libraries.
           CIBW_SKIP: 'pp* *-win32'
       - uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:

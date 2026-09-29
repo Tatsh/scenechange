@@ -32,7 +32,6 @@ datatable
 datatables
 ddocs
 debugpy
-delocate
 denoiser
 destdir
 dfetch
@@ -87,6 +86,7 @@ libtemporalsoften
 linters
 luma
 mainpage
+manylinux
 mapfile
 mdfile
 mesonbuild
@@ -103,6 +103,7 @@ msvcp
 msvcprtd
 msvcrtd
 mulhi
+musllinux
 myproject
 mypy
 namedtuples
@@ -135,7 +136,6 @@ pytest
 pythonhosted
 reflow
 regen
-retag
 returncode
 ripgreprc
 rstcheck

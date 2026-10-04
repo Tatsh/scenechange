@@ -26,7 +26,11 @@ local utils = import 'utils.libsonnet';
   ],
   want_codeql: false,
   keywords: ['plugin', 'vapoursynth'],
-  clang_format_args: 'native/*.c',
+  want_clang_format: true,
+  clang_format_args: "$(git ls-files '*.c' '*.h')",
+  pre_commit_config+: {
+    repos+: [import 'defaults/pre-commit-config/clang-format.libsonnet'],
+  },
   github+: {
     workflows+: {
       release_gate_workflows: ['Meson', 'Native Tests'],

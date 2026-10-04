@@ -117,6 +117,7 @@ oneline
 packus
 pathlib
 pavelzw
+pipx
 plistlib
 pluginsdir
 popen
@@ -198,12 +199,12 @@ vshrn
 vspapi
 vspluginapi
 vsubq
+werror
 wheelcheck
 winget
 winver
 wiswa
 wiswa's
-worktree
 wrapdb
 wraplock
 wshadow

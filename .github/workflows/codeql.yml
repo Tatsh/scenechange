@@ -1,6 +1,9 @@
 # This workflow is hand-maintained to analyse both C and Python. Wiswa would
 # generate a single-language workflow (or remove it, as want_codeql is false),
 # so after a regen restore it with: git checkout -- .github/workflows/codeql.yml
+concurrency:
+  cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}'
 env:
   CODEQL_EXTRACTOR_CPP_AUTOINSTALL_DEPENDENCIES: 'false'
 jobs:

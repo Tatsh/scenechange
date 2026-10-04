@@ -1,5 +1,9 @@
+concurrency:
+  cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}'
 jobs:
   tests:
+    name: 'Tests'
     permissions:
       contents: 'write'
     runs-on: '${{ matrix.backend.runner }}'
@@ -16,11 +20,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y lcov libcmocka-dev ninja-build pkg-config
           python -m pip install --upgrade meson
-      - name: 'Configure'
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+          FORCE_GENERIC_ARG: "${{ matrix.backend.force_generic && '-Dforce_generic=true' || '' }}"
+        name: 'Configure'
         run: >-
-          meson setup build --buildtype '${{ matrix.build-type }}'
+          meson setup build --buildtype "$BUILD_TYPE"
           -Db_coverage=true -Dtests=enabled
-          ${{ matrix.backend.force_generic && '-Dforce_generic=true' || '' }}
+          ${FORCE_GENERIC_ARG:+"$FORCE_GENERIC_ARG"}
       - name: 'Build'
         run: 'meson compile -C build --verbose'
       - name: 'Run tests'
@@ -56,6 +63,7 @@ jobs:
             suffix: 'generic'
         build-type: ['debug', 'release']
   finish-coveralls:
+    name: 'Finish Coveralls'
     needs: 'tests'
     runs-on: 'ubuntu-latest'
     steps:

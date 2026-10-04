@@ -2,8 +2,13 @@
 # OS/CPU combination with cibuildwheel and publishes them all to PyPI in a
 # single job. A Wiswa regen overwrites this file with the single-wheel
 # template (as happened after v0.5.0); restore this version afterwards.
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   check:
+    name: 'Wait for Workflows'
     permissions:
       actions: 'read'
       contents: 'read'
@@ -77,6 +82,7 @@ jobs:
           echo '::error::Timed out waiting for workflows.'
           exit 1
   build-sdist:
+    name: 'Build sdist'
     needs:
       - 'check'
     permissions:
@@ -100,6 +106,7 @@ jobs:
           name: 'sdist'
           path: 'dist/*.tar.gz'
   build-wheels:
+    name: 'Build wheels'
     needs:
       - 'check'
     permissions:
@@ -142,6 +149,7 @@ jobs:
             os: 'windows-11-arm'
   publish:
     environment: 'release'
+    name: 'Publish'
     needs:
       - 'build-sdist'
       - 'build-wheels'

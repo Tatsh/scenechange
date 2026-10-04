@@ -1,8 +1,8 @@
 {
   "_wiswa": {
-    "commandLine": "wiswa -d",
-    "lastRun": "2026-09-29T01:39:50Z",
-    "version": "7137092-dirty"
+    "commandLine": "wiswa -d --skip-remote --cache-time 86400",
+    "lastRun": "2026-10-04T11:12:47Z",
+    "version": "e91526d"
   },
   "contributors": ["Andrew Udvare <audvare@gmail.com>", "Oka Motofumi <chikuzen.mo@gmail.com>"],
   "cspell": {
@@ -27,6 +27,7 @@
       ".git/**",
       ".yarn/**/*.cjs",
       ".vscode/extensions.json",
+      ".wiswa-ci/**",
       "dist/**",
       "man/**",
       "*.patch",

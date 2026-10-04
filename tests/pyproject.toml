@@ -20,7 +20,7 @@ extend-ignore = [
   "undocumented-public-nested-class",
   "undocumented-public-package",
   "unused-function-argument",
-  "unused-method-argument",
+  "unused-method-argument"
 ]
 preview = true
 

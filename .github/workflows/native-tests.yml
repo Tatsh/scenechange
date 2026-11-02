@@ -36,9 +36,7 @@ jobs:
         name: 'Generate coverage information'
         run: >-
           lcov -c -d build -o coverage.lcov
-          --exclude build
           --exclude tests
-          --exclude '*/subprojects/*'
           --include '*/native/*'
           --keep-going
       - if: "matrix.build-type == 'debug'"

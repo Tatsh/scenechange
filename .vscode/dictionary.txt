@@ -1,3 +1,4 @@
+analyzer
 appimage
 archs
 asyncio
@@ -68,6 +69,7 @@ hoverxref
 htmlcov
 ifdef
 isort
+iterdir
 itertools
 iwyu
 jinja
@@ -108,6 +110,7 @@ myproject
 mypy
 namedtuples
 nofallback
+nojekyll
 noone
 noqa
 norecursedirs

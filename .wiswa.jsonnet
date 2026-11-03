@@ -24,7 +24,7 @@ local utils = import 'utils.libsonnet';
       name: '%s %s' % [self['given-names'], self['family-names']],
     },
   ],
-  want_codeql: false,
+  want_codeql: true,
   keywords: ['plugin', 'vapoursynth'],
   want_clang_format: true,
   clang_format_args: "$(git ls-files '*.c' '*.h')",
@@ -32,6 +32,11 @@ local utils = import 'utils.libsonnet';
     repos+: [import 'defaults/pre-commit-config/clang-format.libsonnet'],
   },
   github+: {
+    codeql+: {
+      languages: ['actions'],
+      runs_on: 'ubuntu-latest',
+      workflow_file: 'codeql-actions.yml',
+    },
     workflows+: {
       release_gate_workflows: ['Meson', 'Native Tests'],
     },

@@ -24,6 +24,7 @@ cmplt
 commitizen
 concrt
 conftest
+copytree
 coveragerc
 coverallsapp
 ctypes
@@ -69,7 +70,6 @@ hoverxref
 htmlcov
 ifdef
 isort
-iterdir
 itertools
 iwyu
 jinja
@@ -143,6 +143,7 @@ reflow
 regen
 returncode
 ripgreprc
+rmtree
 rstcheck
 sbclaude
 scenechange
@@ -153,6 +154,7 @@ sectcreate
 setattr
 shellcheck
 shellformat
+shutil
 snapcraft
 soupsieve
 sphinxcontrib

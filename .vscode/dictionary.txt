@@ -120,6 +120,7 @@ oneline
 packus
 pathlib
 pavelzw
+pipefail
 pipx
 plistlib
 pluginsdir

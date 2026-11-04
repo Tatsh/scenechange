@@ -139,12 +139,14 @@ pypi
 pyproject
 pytest
 pythonhosted
+rdparty
 reflow
 regen
 returncode
 ripgreprc
 rmtree
 rstcheck
+sarif
 sbclaude
 scenechange
 schemafile

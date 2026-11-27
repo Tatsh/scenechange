@@ -7,6 +7,7 @@
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/tags)
 [![License](https://img.shields.io/github/license/Tatsh/scenechange)](https://github.com/Tatsh/scenechange/blob/master/LICENSE.txt)
 [![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/scenechange/v0.5.1/master)](https://github.com/Tatsh/scenechange/compare/v0.5.1...master)
+[![CodeQL](https://github.com/Tatsh/scenechange/actions/workflows/codeql-actions.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/codeql-actions.yml)
 [![QA](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/scenechange/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Tatsh/scenechange/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/scenechange?branch=master)

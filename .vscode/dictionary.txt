@@ -1,4 +1,3 @@
-analyzer
 appimage
 archs
 asyncio
@@ -24,7 +23,6 @@ cmplt
 commitizen
 concrt
 conftest
-copytree
 coveragerc
 coverallsapp
 ctypes
@@ -120,7 +118,6 @@ oneline
 packus
 pathlib
 pavelzw
-pipefail
 pipx
 plistlib
 pluginsdir
@@ -144,7 +141,6 @@ reflow
 regen
 returncode
 ripgreprc
-rmtree
 rstcheck
 sarif
 sbclaude
@@ -156,7 +152,6 @@ sectcreate
 setattr
 shellcheck
 shellformat
-shutil
 snapcraft
 soupsieve
 sphinxcontrib
